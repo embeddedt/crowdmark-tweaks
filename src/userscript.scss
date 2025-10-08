@@ -1,0 +1,25 @@
+/* slightly reduce comment height */
+li.tool__lib-comment, span.lib-comment__text > div.processed-text {
+    --us-height-override: 30px;
+    height: var(--us-height-override) !important;
+    line-height: var(--us-height-override) !important;
+}
+
+/* increase default comment library width */
+.grading-toolbar__submenu--library {
+    width: 236px;
+}
+
+@for $i from 1 through 9 {
+    li.tool__lib-comment:nth-of-type(#{$i})::before {
+        display: block;
+        content: '#{$i - 1}';
+        position: absolute;
+        right: 4px;
+        bottom: 4px;
+        background-color: #444;
+        padding: 1px;
+        border: 1px #777 solid;
+        line-height: normal !important;
+    }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "crowdmark-tweaks",
+  "version": "0.1.0",
+  "description": "Userscript to add more functionality to Crowdmark",
+  "private": true,
+  "scripts": {
+    "build": "NODE_ENV=production npx webpack",
+    "dev": "NODE_ENV=development npx webpack-dev-server",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/embeddedt/crowdmark-tweaks.git"
+  },
+  "author": "embeddedt",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/embeddedt/crowdmark-tweaks/issues"
+  },
+  "homepage": "https://github.com/embeddedt/crowdmark-tweaks#readme",
+  "devDependencies": {
+    "sass": "^1.93.2",
+    "sass-loader": "^16.0.5",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2",
+    "webpack-userscript": "^3.2.3"
+  },
+  "dependencies": {
+    "@types/tampermonkey": "^5.0.4"
+  }
+}
