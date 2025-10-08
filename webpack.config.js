@@ -16,7 +16,7 @@ export default {
       directory: path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist')
     }
   },
-  devtool: dev ? 'inline-source-map' : false,
+  devtool: false,
   module: {
     rules: [
       {
