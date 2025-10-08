@@ -11,10 +11,12 @@ export default {
     filename: 'crowdmark-tweaks.js'
   },
   devServer: {
+    webSocketServer: false,
     static: {
       directory: path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist')
     }
   },
+  devtool: dev ? 'inline-source-map' : false,
   module: {
     rules: [
       {
