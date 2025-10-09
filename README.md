@@ -45,5 +45,5 @@ will be applied when you press `e`.
 1. Ensure you have a userscript extension (I use [Tampermonkey](https://www.tampermonkey.net/), but any Greasemonkey derivative will likely work) installed in your browser.
 2. Open the raw userscript in your browser after the extension is installed: https://github.com/embeddedt/crowdmark-tweaks/raw/refs/heads/main/crowdmark-tweaks.user.js
 
-   This should bring up a window asking you to confirm installation of the script. Once it is installed, refresh Piazza.
+   This should bring up a window asking you to confirm installation of the script. Once it is installed, refresh Crowdmark.
 
