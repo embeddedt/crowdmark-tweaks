@@ -10,8 +10,16 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
     width: 236px;
 }
 
+
+
+.cmt-waiting-for-digit {
+    .grading-sidebar__evaluation .evaluation__score-block {
+        border-color: red;
+    }
+}
+
 @for $i from 1 through 9 {
-    li.tool__lib-comment:nth-of-type(#{$i})::before {
+    li.tool__lib-comment:not(.lib-comment--no-comment):nth-of-type(#{$i})::before {
         display: block;
         content: '#{$i - 1}';
         position: absolute;
@@ -21,5 +29,11 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
         padding: 1px;
         border: 1px #777 solid;
         line-height: normal !important;
+    }
+}
+
+.cmt-waiting-for-comment-idx {
+    ul.grading-toolbar__submenu--library {
+        border: 2px red solid;
     }
 }

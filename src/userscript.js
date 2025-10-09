@@ -1,3 +1,10 @@
+import customCss from './userscript.scss';
+import { installHotkeyGradingHandler } from './lib/keypad';
+import { registerAddressableKeybind, registerGlobalKeybind } from './lib/keybinds';
+
+GM_addStyle(customCss);
+installHotkeyGradingHandler();
+
 let mouseX = 0, mouseY = 0;
 document.addEventListener('mousemove', e => {
     mouseX = e.clientX;
@@ -52,31 +59,37 @@ function applyComment(num) {
     if (!librarySidebar) {
         return;
     }
-    const commentElements = librarySidebar.querySelectorAll("li.tool__lib-comment");
-    if ((num - 1) >= commentElements.length) {
-        console.warn("Requested comment index is out of range");
+    const commentElements = librarySidebar.querySelectorAll("li.tool__lib-comment:not(.lib-comment--no-comment)");
+    let commentElement = null;
+    if (num >= '0' && num <= '9') {
+        const idx = Number(num);
+        if ((idx - 1) >= commentElements.length) {
+            console.warn("Requested comment index is out of range");
+            return;
+        }
+        commentElement = commentElements[idx - 1];
+    } else {
+        // Scan all comments, see if any of them have $\phantom{<key>}$ at the start
+        for (const candidate of commentElements) {
+            const phantomMeta = candidate.querySelector("span:nth-child(1 of .MathJax) mphantom");
+            if (phantomMeta == null) {
+                continue;
+            } else if (num === phantomMeta.textContent.trim()) {
+                commentElement = candidate;
+                break;
+            }
+        }
+    }
+
+    if (commentElement == null) {
+        console.warn("no matching comment found");
         return;
     }
-    const commentElement = commentElements[num - 1];
+
     console.log("Auto-apply comment", commentElement);
     simulateMouseDragTo(commentElement, mouseX, mouseY);
 }
 
-document.addEventListener('keydown', (event) => {
-    if (!event.ctrlKey) return;
-
-    if (event.repeat) return;
-
-    let num = null;
-    if (event.code.startsWith('Digit')) {
-        num = parseInt(event.code.slice(5), 10); // 0..9
-        event.preventDefault();
-    } else if (event.code.startsWith('Numpad')) {
-        num = parseInt(event.code.slice(6), 10); // 0..9
-        event.preventDefault();
-    }
-
-    if (num != null && num >= 1 && num <= 9) {
-        applyComment(num);
-    }
-}, { passive: false });
+registerAddressableKeybind('w', 'cmt-waiting-for-comment-idx', (idx) => {
+    applyComment(idx);
+});
