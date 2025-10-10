@@ -1,6 +1,6 @@
 import customCss from './userscript.scss';
 import { installHotkeyGradingHandler } from './lib/keypad';
-import { registerAddressableKeybind, registerGlobalKeybind } from './lib/keybinds';
+import { extendedAddressValueCallback, registerAddressableKeybind, registerGlobalKeybind } from './lib/keybinds';
 
 GM_addStyle(customCss);
 installHotkeyGradingHandler();
@@ -46,50 +46,41 @@ function simulateMouseDragTo(draggableEl, endX, endY) {
     fire('mouseup', endX, endY, document.elementFromPoint(endX, endY));
 }
 
+function getCommentMap() {
+    /** @type {Map<string, HTMLElement>} */
+    const commentMap = new Map();
 
-function applyComment(num) {
     // Only apply comments when they could be dragged to that spot
-    const el = document.elementFromPoint(mouseX, mouseY);
-    const isOver = el?.closest('.grading-canvas__image-capture-container') !== null;
-    if (!isOver) {
-        console.warn("Mouse is not over exam paper");
-        return;
-    }
     const librarySidebar = document.querySelector("ul.grading-toolbar__submenu--library");
-    if (!librarySidebar) {
-        return;
-    }
-    const commentElements = librarySidebar.querySelectorAll("li.tool__lib-comment:not(.lib-comment--no-comment)");
-    let commentElement = null;
-    if (num >= '0' && num <= '9') {
-        const idx = Number(num);
-        if ((idx - 1) >= commentElements.length) {
-            console.warn("Requested comment index is out of range");
-            return;
-        }
-        commentElement = commentElements[idx - 1];
-    } else {
+    if (librarySidebar) {
+         const commentElements = Array.from(librarySidebar.querySelectorAll("li.tool__lib-comment:not(.lib-comment--no-comment)"));
+
         // Scan all comments, see if any of them have $\phantom{<key>}$ at the start
-        for (const candidate of commentElements) {
+        for (let i = 0; i < commentElements.length; i++) {
+            const candidate = commentElements[i];
             const phantomMeta = candidate.querySelector("span:nth-child(1 of .MathJax) mphantom");
-            if (phantomMeta == null) {
-                continue;
-            } else if (num === phantomMeta.textContent.trim()) {
-                commentElement = candidate;
-                break;
+            if (phantomMeta != null) {
+                const key = phantomMeta.textContent.trim();
+                if (!commentMap.has(key)) {
+                    commentMap.set(key, candidate);
+                }
+            }
+            if (i < 10) {
+                const digitKey = ((i + 1) % 10).toString();
+                commentMap.set(digitKey, candidate);
             }
         }
     }
 
-    if (commentElement == null) {
-        console.warn("no matching comment found");
-        return;
-    }
+    return commentMap;
+}
 
+function applyComment(commentElement) {
     console.log("Auto-apply comment", commentElement);
     simulateMouseDragTo(commentElement, mouseX, mouseY);
 }
 
-registerAddressableKeybind('w', 'cmt-waiting-for-comment-idx', (idx) => {
-    applyComment(idx);
+registerAddressableKeybind('w', 'cmt-waiting-for-comment-idx', extendedAddressValueCallback(getCommentMap, applyComment), () => {
+    const el = document.elementFromPoint(mouseX, mouseY);
+    return el?.closest('.grading-canvas__image-capture-container') !== null;
 });
