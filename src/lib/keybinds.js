@@ -132,11 +132,17 @@ export function registerAddressableKeybind(char, stateClass, valueCallback, enab
                 !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey // no modifiers
             ) {
                 valueBuffer += key;
-                if (!valueCallback(valueBuffer)) {
-                    stopWaiting();
-                }
                 e.stopImmediatePropagation();
                 e.preventDefault();
+                let result = false;
+                try {
+                    result = valueCallback(valueBuffer);
+                } catch(e) {
+                    console.error("Error from keybind handler", e);
+                }
+                if (!result) {
+                    stopWaiting();
+                }
             } else if (key === "Escape") {
                 stopWaiting();
             }
