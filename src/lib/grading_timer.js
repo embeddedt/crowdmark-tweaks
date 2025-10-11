@@ -1,6 +1,6 @@
 import { registerGlobalKeybind } from "./keybinds";
 
-import { getCurrentBookletNumber } from "./navigation";
+import { getCurrentBookletNumber, isOnGradingPage } from "./navigation";
 
 function formatTime(seconds) {
     const sign = seconds < 0 ? "-" : "";
@@ -21,6 +21,8 @@ export function installGradingTimer() {
     let currentTimer;
 
     let currentSecondsValue = 0;
+
+    let currentPageIsGrading = isOnGradingPage();
 
     function injectIfPresent() {
         const evalList = document.querySelector(".grading-sidebar__container > .evaluation__list");
@@ -52,17 +54,21 @@ export function installGradingTimer() {
     let highestSeenBooklet = getCurrentBookletNumber() ?? -1;
 
     window.addEventListener("urlchange", () => {
+        const previousWasGrading = currentPageIsGrading;
+        currentPageIsGrading = isOnGradingPage();
         const bookletNumber = getCurrentBookletNumber();
         if (bookletNumber == null || highestSeenBooklet >= bookletNumber) {
             return;
         }
         highestSeenBooklet = bookletNumber;
-        setCurrentValue(currentSecondsValue - getSecondsPerBooklet());
+        if (previousWasGrading) {
+            setCurrentValue(currentSecondsValue - getSecondsPerBooklet());
+        }
         kick();
     });
 
     function tick() {
-        if (currentTimer == null) {
+        if (currentTimer == null || !currentPageIsGrading) {
             return;
         }
         setCurrentValue(currentSecondsValue + 1);
