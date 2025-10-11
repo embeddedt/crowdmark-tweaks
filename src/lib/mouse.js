@@ -12,7 +12,7 @@ export function simulateMouseDragTo(draggableEl, endX, endY) {
 
     function fire(type, x, y, target = document.elementFromPoint(x, y)) {
         if (!target) {
-            console.warn("can't find target to fire event to");
+            console.warn("can't find target to fire " + type + " event to");
             return;
         }
         const event = new MouseEvent(type, {

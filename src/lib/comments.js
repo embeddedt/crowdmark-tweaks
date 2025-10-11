@@ -44,8 +44,16 @@ import { extendedAddressValueCallback, registerAddressableKeybind } from './keyb
 
 
 function getCommentMap() {
-    /** @type {Map<string, HTMLElement>} */
+    /** @type {Map<string, () => void>} */
     const commentMap = new Map();
+
+    /** @type {Map<string, HTMLElement>} */
+    const commentElementMap = new Map();
+
+    function applyComment(commentElement, mouseX = getCurrentMouseX(), mouseY = getCurrentMouseY()) {
+        console.log("Auto-apply comment", commentElement);
+        simulateMouseDragTo(commentElement, mouseX, mouseY);
+    }
 
     // Only apply comments when they could be dragged to that spot
     const librarySidebar = document.querySelector("ul.grading-toolbar__submenu--library");
@@ -59,25 +67,75 @@ function getCommentMap() {
             if (phantomMeta != null) {
                 const key = phantomMeta.textContent.trim();
                 if (!commentMap.has(key)) {
-                    commentMap.set(key, candidate);
+                    commentElementMap.set(key, candidate);
+                    commentMap.set(key, () => applyComment(candidate));
                 }
             }
             if (i < 10) {
                 const digitKey = ((i + 1) % 10).toString();
-                commentMap.set(digitKey, candidate);
+                commentElementMap.set(digitKey, candidate);
+                commentMap.set(digitKey, () => applyComment(candidate));
             }
+        }
+    }
+
+    function applyCommentGroup(groupList) {
+        console.log("Apply group ", groupList);
+        let currentX = getCurrentMouseX(), currentY = getCurrentMouseY();
+        for (const key of groupList) {
+            const elem = commentElementMap.get(key);
+            if (elem == null) {
+                console.warn("missing comment", key);
+                continue;
+            }
+            applyComment(elem, currentX, currentY);
+            const elemOnScreen = document.elementFromPoint(currentX + 5, currentY + 5)?.closest(".comment__preview-container");
+            if (elemOnScreen == null) {
+                console.warn("can't find applied comment");
+                currentY += 30;
+            } else {
+                const rect = elemOnScreen.getBoundingClientRect();
+                currentY += rect.height + 5;
+            }
+        }
+    }
+
+    const config = getConfigurationCommentBlob();
+
+    if (typeof config.groups !== 'undefined') {
+        for (let [groupKey, groupList] of Object.entries(config.groups)) {
+            commentMap.set(groupKey, () => applyCommentGroup(groupList));
         }
     }
 
     return commentMap;
 }
 
-function applyComment(commentElement) {
-    console.log("Auto-apply comment", commentElement);
-    simulateMouseDragTo(commentElement, getCurrentMouseX(), getCurrentMouseY());
+const CMT_CONFIG_HEADER = "cmt_config:";
+
+/**
+ * Uses a Crowdmark comment to hold persistent configuration for the userscript.
+ * Kudos to @motiwalam for the idea.
+ */
+export function getConfigurationCommentBlob() {
+    const librarySidebar = document.querySelector("ul.grading-toolbar__submenu--library");
+    if (librarySidebar) {
+        const commentElements = Array.from(librarySidebar.querySelectorAll("li.tool__lib-comment:not(.lib-comment--no-comment)"));
+        for (let element of commentElements) {
+            const text = element.querySelector(".lib-comment__text")?.textContent.trim() ?? "";
+            if (text.startsWith(CMT_CONFIG_HEADER)) {
+                try {
+                    return JSON.parse(text.substring(CMT_CONFIG_HEADER.length));
+                } catch (e) {
+                    console.error("Invalid CMT config found", e);
+                }
+            }
+        }
+    }
+    return {};
 }
 
-registerAddressableKeybind('w', 'cmt-waiting-for-comment-idx', extendedAddressValueCallback(getCommentMap, applyComment), () => {
+registerAddressableKeybind('w', 'cmt-waiting-for-comment-idx', extendedAddressValueCallback(getCommentMap, x => x()), () => {
     const el = document.elementFromPoint(getCurrentMouseX(), getCurrentMouseY());
     return el?.closest('.grading-canvas__image-capture-container') !== null;
 });
