@@ -48,3 +48,23 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
         color: red;
     }
 }
+
+/* Hack to suppress Crowdmark virtualizing the comment list */
+.cmt-comment-virtualization-workaround {
+    resize: both;
+    position: absolute;
+    top: 56px;
+    left: 0;
+    > .grading-toolbar__submenu--library {
+        resize: none;
+        height: initial !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+    }
+    width: 236px;
+    height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
