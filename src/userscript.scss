@@ -68,3 +68,21 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
     overflow-y: auto;
     overflow-x: hidden;
 }
+
+#cmt-ai-assist-popover {
+    position: fixed;
+    right: 240px;
+    top: 5rem;
+    background-color: #222;
+    color: white;
+    border-radius: 1rem;
+    width: 600px;
+    height: 400px;
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 1em;
+    font-size: 14px;
+    p {
+        margin-bottom: 0.5em;
+    }
+}

@@ -30,3 +30,5 @@ Thumbs.db
 
 # Optional coverage reports
 coverage/
+
+src/ai/question.txt

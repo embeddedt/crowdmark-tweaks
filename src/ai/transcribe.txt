@@ -1,0 +1,17 @@
+### Math Question
+
+{{question}}
+
+### Task
+
+Provide a transcription of the student's handwriting in the following
+image, where they answered the math question. Your output should be a mixture
+of Markdown and LaTeX. Use Markdown for regular text.
+
+You MUST wrap LaTeX math mode
+commands in dollar signs when you want to use them (e.g. $\mathbb{Z}$).
+
+Do NOT change any of the wording in the student answer. Your only job is to
+transcribe.
+
+### Image

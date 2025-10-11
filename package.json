@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/embeddedt/crowdmark-tweaks#readme",
   "devDependencies": {
+    "@types/mathjax": "^0.0.40",
     "sass": "^1.93.2",
     "sass-loader": "^16.0.5",
     "webpack": "^5.101.3",
@@ -27,6 +28,9 @@
     "webpack-userscript": "^3.2.3"
   },
   "dependencies": {
-    "@types/tampermonkey": "^5.0.4"
+    "@types/tampermonkey": "^5.0.4",
+    "express": "^5.1.0",
+    "markdown-it": "^14.1.0",
+    "node-fetch": "^3.3.2"
   }
 }

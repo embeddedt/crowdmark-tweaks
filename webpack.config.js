@@ -44,8 +44,8 @@ export default {
           author: 'embeddedt',
           match: 'https://app.crowdmark.com/*',
           homepage: 'https://github.com/embeddedt/crowdmark-tweaks',
-          connect: ['app.crowdmark.com'],
-          grant: ['GM_addStyle', 'GM_addElement'],
+          connect: ['app.crowdmark.com', 'localhost'],
+          grant: ['GM_addStyle', 'GM_addElement', 'GM_xmlhttpRequest'],
           version: `${original.version}-build.[buildTime]`
         };
         if (!dev) {
