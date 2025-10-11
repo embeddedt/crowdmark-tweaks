@@ -143,7 +143,7 @@ export function registerAddressableKeybind(char, stateClass, valueCallback, enab
                 if (!result) {
                     stopWaiting();
                 }
-            } else if (key === "Escape") {
+            } else if (key === "escape") {
                 stopWaiting();
             }
         }
