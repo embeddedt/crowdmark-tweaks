@@ -32,12 +32,6 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
     }
 }
 
-.cmt-waiting-for-comment-idx {
-    ul.grading-toolbar__submenu--library {
-        border: 2px red solid;
-    }
-}
-
 .cmt-grading-timer {
     background-color: black;
     font-family: monospace;
@@ -67,7 +61,15 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
     height: 500px;
     overflow-y: auto;
     overflow-x: hidden;
+    border: 2px transparent solid;
 }
+
+.cmt-waiting-for-comment-idx {
+    .cmt-comment-virtualization-workaround {
+        border-color: red;
+    }
+}
+
 
 #cmt-ai-assist-popover {
     position: fixed;
