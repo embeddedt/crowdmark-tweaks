@@ -1,9 +1,12 @@
 import customCss from './userscript.scss';
+import './lib/navigation';
 import { installHotkeyGradingHandler } from './lib/keypad';
 import { extendedAddressValueCallback, registerAddressableKeybind, registerGlobalKeybind } from './lib/keybinds';
+import { installGradingTimer } from './lib/grading_timer';
 
 GM_addStyle(customCss);
 installHotkeyGradingHandler();
+installGradingTimer();
 
 let mouseX = 0, mouseY = 0;
 document.addEventListener('mousemove', e => {

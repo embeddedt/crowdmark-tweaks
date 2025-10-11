@@ -37,3 +37,14 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
         border: 2px red solid;
     }
 }
+
+.cmt-grading-timer {
+    background-color: black;
+    font-family: monospace;
+    color: green;
+    font-size: 24px;
+    text-align: center;
+    &.cmt-grading-timer-lagging {
+        color: red;
+    }
+}
