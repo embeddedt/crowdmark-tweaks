@@ -18,17 +18,23 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
     }
 }
 
-@for $i from 1 through 9 {
+@for $i from 1 through 11 {
     li.tool__lib-comment:not(.lib-comment--no-comment):nth-of-type(#{$i})::before {
         display: block;
-        content: '#{$i - 1}';
+        content: '#{($i - 1) % 10}';
         position: absolute;
         right: 4px;
-        bottom: 4px;
-        background-color: #444;
+        bottom: 50%;
+        transform: translateY(50%);
+
         padding: 1px;
-        border: 1px #777 solid;
         line-height: normal !important;
+        background-color: #ccc;
+        border: 1px #777 solid;
+        /* dark mode */
+        [data-darkreader-scheme="dark"] & {
+            background-color: #444;
+        }
     }
 }
 
