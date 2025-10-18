@@ -88,3 +88,8 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
         margin-bottom: 0.5em;
     }
 }
+
+/* raise comments being edited above others */
+.cm-comment.is-editing {
+    z-index: 100;
+}

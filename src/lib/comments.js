@@ -43,6 +43,12 @@ import { waitForElementToExist } from "./mutationHelper";
     observer.observe(document.body, { childList: true, subtree: true });
 })();
 
+/** @type {HTMLElement[][]} */
+let commentKeybindUndoStack = [];
+
+window.addEventListener('urlchange', () => {
+    commentKeybindUndoStack = [];
+});
 
 function getCommentMap() {
     /** @type {Map<string, () => void>} */
@@ -51,9 +57,15 @@ function getCommentMap() {
     /** @type {Map<string, HTMLElement>} */
     const commentElementMap = new Map();
 
-    function applyComment(commentElement, mouseX = getCurrentMouseX(), mouseY = getCurrentMouseY()) {
+    async function applyComment(commentElement, mouseX = getCurrentMouseX(), mouseY = getCurrentMouseY()) {
         console.log("Auto-apply comment", commentElement);
         simulateMouseDragTo(commentElement, mouseX, mouseY);
+        const undoList = commentKeybindUndoStack[commentKeybindUndoStack.length - 1];
+        const element = await waitForElementUnderMouse(e => {
+            return e.classList.contains("comment__preview-container");
+        }, mouseX + 10, mouseY + 10);
+        undoList.push(element);
+        return element;
     }
 
     // Only apply comments when they could be dragged to that spot
@@ -89,10 +101,7 @@ function getCommentMap() {
                 console.warn("missing comment", key);
                 continue;
             }
-            applyComment(elem, currentX, currentY);
-            const elemOnScreen = await waitForElementUnderMouse(e => {
-                return e.classList.contains("comment__preview-container");
-            }, currentX + 10, currentY + 10);
+            const elemOnScreen = await applyComment(elem, currentX, currentY);
             if (elemOnScreen == null) {
                 console.warn("can't find applied comment");
                 currentY += 30;
@@ -153,18 +162,32 @@ function getHoveredCommentElement() {
     return null;
 }
 
-registerAddressableKeybind('w', 'cmt-waiting-for-comment-idx', extendedAddressValueCallback(getCommentMap, x => x()), () => {
+async function deleteComment(theComment) {
+    simulateClick(theComment);
+    const deleteBtn = await waitForElementToExist(theComment.parentElement, e => e.tagName == 'BUTTON' && e.textContent.trim() == 'Delete' && e.closest(".comment__footer") != null);
+    deleteBtn.click();
+}
+
+registerAddressableKeybind('w', 'cmt-waiting-for-comment-idx', extendedAddressValueCallback(getCommentMap, commentApplyFn => {
+    // Push a new list to the stack
+    commentKeybindUndoStack.push([]);
+    commentApplyFn();
+}), () => {
     const el = document.elementFromPoint(getCurrentMouseX(), getCurrentMouseY());
     return el?.closest('.grading-canvas__image-capture-container') !== null;
 });
 
-registerGlobalKeybind('x', async() => {
+registerGlobalKeybind('x', () => {
     const theComment = getHoveredCommentElement();
     if (theComment == null) {
         return;
     }
-    console.log("clicking comment");
-    simulateClick(theComment);
-    const deleteBtn = await waitForElementToExist(theComment.parentElement, e => e.tagName == 'BUTTON' && e.textContent.trim() == 'Delete' && e.closest(".comment__footer") != null);
-    deleteBtn.click();
+    deleteComment(theComment);
 }, () => getHoveredCommentElement() != null);
+
+registerGlobalKeybind('u', async() => {
+    const undoList = commentKeybindUndoStack.pop();
+    for (const comment of undoList) {
+        await deleteComment(comment);
+    }
+}, () => commentKeybindUndoStack.length > 0);
