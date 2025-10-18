@@ -55,19 +55,21 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
     position: absolute;
     top: 56px;
     left: 0;
+    display: flex;
+    flex-direction: column;
     > .grading-toolbar__submenu--library {
         resize: none;
         height: initial !important;
-        position: absolute;
-        top: 0;
-        left: 0;
+        position: static;
         width: 100% !important;
+        flex: 1 0 auto;
+        border-radius: 0;
     }
     width: 236px;
-    height: 500px;
     overflow-y: auto;
     overflow-x: hidden;
     border: 2px transparent solid;
+    border-radius: 4px;
 }
 
 .cmt-waiting-for-comment-idx {
