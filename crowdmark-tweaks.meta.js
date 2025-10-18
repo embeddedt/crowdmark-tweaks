@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Crowdmark Tweaks
 // @description Useful tweaks for Crowdmark
-// @version 0.1.0-build.2025-10-11T23:59:27.766Z
+// @version 0.1.0-build.2025-10-18T01:53:02.455Z
 // @author embeddedt
 // @homepage https://github.com/embeddedt/crowdmark-tweaks
 // @supportURL https://github.com/embeddedt/crowdmark-tweaks/issues
@@ -12,6 +12,7 @@
 // @grant GM_addStyle
 // @grant GM_addElement
 // @grant GM_xmlhttpRequest
+// @grant window.onurlchange
 // @icon https://www.google.com/s2/favicons?sz=64&domain=crowdmark.com
 // @namespace https://github.com/embeddedt
 // @updateURL https://github.com/embeddedt/crowdmark-tweaks/raw/refs/heads/main/crowdmark-tweaks.meta.js
