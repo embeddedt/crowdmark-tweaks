@@ -1,4 +1,4 @@
-import { getCurrentMouseX, getCurrentMouseY, simulateClick, simulateMouseDragTo } from "./mouse";
+import { getCurrentMouseX, getCurrentMouseY, simulateClick, simulateMouseDragTo, waitForElementUnderMouse } from "./mouse";
 import { extendedAddressValueCallback, registerAddressableKeybind, registerGlobalKeybind } from './keybinds';
 import { waitForElementToExist } from "./mutationHelper";
 
@@ -80,7 +80,7 @@ function getCommentMap() {
         }
     }
 
-    function applyCommentGroup(groupList) {
+    async function applyCommentGroup(groupList) {
         console.log("Apply group ", groupList);
         let currentX = getCurrentMouseX(), currentY = getCurrentMouseY();
         for (const key of groupList) {
@@ -90,7 +90,9 @@ function getCommentMap() {
                 continue;
             }
             applyComment(elem, currentX, currentY);
-            const elemOnScreen = document.elementFromPoint(currentX + 5, currentY + 5)?.closest(".comment__preview-container");
+            const elemOnScreen = await waitForElementUnderMouse(e => {
+                return e.classList.contains("comment__preview-container");
+            }, currentX + 10, currentY + 10);
             if (elemOnScreen == null) {
                 console.warn("can't find applied comment");
                 currentY += 30;

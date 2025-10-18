@@ -59,3 +59,25 @@ export function getCurrentMouseX() {
 export function getCurrentMouseY() {
     return mouseY;
 }
+
+/**
+ *
+ * @param {(el: HTMLElement) => boolean} elementPredicate
+ * @param {number} curX
+ * @param {number} curY
+ * @returns
+ */
+export async function waitForElementUnderMouse(elementPredicate, curX = getCurrentMouseX(), curY = getCurrentMouseY()) {
+    let tries = 0;
+    while (true) {
+        const el = document.elementsFromPoint(curX, curY).find(elementPredicate);
+        if (el) {
+            return el;
+        }
+        tries++;
+        if (tries >= 100) {
+            throw new Error("Could not find element");
+        }
+        await new Promise(r => setTimeout(r, 50));
+    }
+}
