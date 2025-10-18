@@ -32,10 +32,11 @@ function isRelevantKeydownEvent(e) {
  *
  * @param {string} char
  * @param {() => void} pressCallback
+ * @param {() => boolean} enabledPredicate
  */
-export function registerGlobalKeybind(char, pressCallback) {
+export function registerGlobalKeybind(char, pressCallback, enabledPredicate = () => true) {
     document.addEventListener('keydown', (e) => {
-        if (!isRelevantKeydownEvent(e) || e.repeat || areOtherKeybindsActive(char)) {
+        if (!isRelevantKeydownEvent(e) || e.repeat || areOtherKeybindsActive(char) || !enabledPredicate()) {
             return;
         }
 

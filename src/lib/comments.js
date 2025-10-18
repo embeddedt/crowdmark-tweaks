@@ -1,5 +1,6 @@
-import { getCurrentMouseX, getCurrentMouseY, simulateMouseDragTo } from "./mouse";
-import { extendedAddressValueCallback, registerAddressableKeybind } from './keybinds';
+import { getCurrentMouseX, getCurrentMouseY, simulateClick, simulateMouseDragTo } from "./mouse";
+import { extendedAddressValueCallback, registerAddressableKeybind, registerGlobalKeybind } from './keybinds';
+import { waitForElementToExist } from "./mutationHelper";
 
 // Wrap the comment library in a div and make the <ul> full height. This
 // effectively disables the list virtualization and forces every comment element
@@ -135,7 +136,33 @@ export function getConfigurationCommentBlob() {
     return {};
 }
 
+/**
+ *
+ * @returns {HTMLDivElement}
+ */
+function getHoveredCommentElement() {
+    const elements = document.elementsFromPoint(getCurrentMouseX(), getCurrentMouseY());
+    for (const el of elements) {
+        const comment = el.closest("div.comment__preview");
+        if (comment != null) {
+            return comment;
+        }
+    }
+    return null;
+}
+
 registerAddressableKeybind('w', 'cmt-waiting-for-comment-idx', extendedAddressValueCallback(getCommentMap, x => x()), () => {
     const el = document.elementFromPoint(getCurrentMouseX(), getCurrentMouseY());
     return el?.closest('.grading-canvas__image-capture-container') !== null;
 });
+
+registerGlobalKeybind('x', async() => {
+    const theComment = getHoveredCommentElement();
+    if (theComment == null) {
+        return;
+    }
+    console.log("clicking comment");
+    simulateClick(theComment);
+    const deleteBtn = await waitForElementToExist(theComment.parentElement, e => e.tagName == 'BUTTON' && e.textContent.trim() == 'Delete' && e.closest(".comment__footer") != null);
+    deleteBtn.click();
+}, () => getHoveredCommentElement() != null);

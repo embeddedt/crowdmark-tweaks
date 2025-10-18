@@ -5,25 +5,25 @@ document.addEventListener('mousemove', e => {
     mouseY = e.clientY;
 });
 
+function fire(type, x, y, target = document.elementFromPoint(x, y)) {
+    if (!target) {
+        console.warn("can't find target to fire " + type + " event to");
+        return;
+    }
+    const event = new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX: x,
+        clientY: y,
+        buttons: 1, // left mouse button
+    });
+    target.dispatchEvent(event);
+}
+
 export function simulateMouseDragTo(draggableEl, endX, endY) {
     const startRect = draggableEl.getBoundingClientRect();
     const startX = startRect.left + startRect.width / 2;
     const startY = startRect.top + startRect.height / 2;
-
-    function fire(type, x, y, target = document.elementFromPoint(x, y)) {
-        if (!target) {
-            console.warn("can't find target to fire " + type + " event to");
-            return;
-        }
-        const event = new MouseEvent(type, {
-            bubbles: true,
-            cancelable: true,
-            clientX: x,
-            clientY: y,
-            buttons: 1, // left mouse button
-        });
-        target.dispatchEvent(event);
-    }
 
     // 1. Mouse down on the draggable element
     fire('mousedown', startX, startY, draggableEl);
@@ -38,6 +38,18 @@ export function simulateMouseDragTo(draggableEl, endX, endY) {
 
     // 3. Mouse up at final position
     fire('mouseup', endX, endY, document.elementFromPoint(endX, endY));
+}
+
+/**
+ * @param {HTMLElement} element
+ */
+export function simulateClick(element) {
+    const rect = element.getBoundingClientRect();
+    const x = rect.x + rect.width / 2;
+    const y = rect.y + rect.height / 2;
+    fire('mousedown', x, y, element);
+    fire('mouseup', x, y, element);
+    fire('click', x, y, element);
 }
 
 export function getCurrentMouseX() {
