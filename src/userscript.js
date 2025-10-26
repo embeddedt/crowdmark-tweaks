@@ -5,6 +5,7 @@ import { installGradingTimer } from './lib/grading_timer';
 import './lib/comments';
 import './lib/transcribe';
 import './lib/fast_booklet_switch';
+import './lib/booklet_prefetch';
 
 GM_addStyle(customCss);
 installHotkeyGradingHandler();

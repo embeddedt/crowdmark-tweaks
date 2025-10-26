@@ -22,6 +22,8 @@
     "@types/mathjax": "^0.0.40",
     "sass": "^1.93.2",
     "sass-loader": "^16.0.5",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
     "webpack": "^5.101.3",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2",
@@ -29,6 +31,7 @@
   },
   "dependencies": {
     "@types/tampermonkey": "^5.0.4",
+    "ember-source": "^5.12.0",
     "express": "^5.1.0",
     "markdown-it": "^14.1.0",
     "node-fetch": "^3.3.2"

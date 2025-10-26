@@ -1,0 +1,7 @@
+{
+    "include": ["src/**/*"],
+    "compilerOptions": {
+        "target": "es2023",
+        "types": ["./node_modules/ember-source/types/stable","tampermonkey"]
+    }
+}

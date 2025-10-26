@@ -10,6 +10,9 @@ export default {
   output: {
     filename: 'crowdmark-tweaks.js'
   },
+  resolve: {
+    extensions: ['.ts', '.js', '.json', '.wasm'],
+  },
   devServer: {
     webSocketServer: false,
     static: {
@@ -25,6 +28,11 @@ export default {
         use: [
           "sass-loader"
         ],
+      },
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
       },
       {
         test: /\.css$/i,

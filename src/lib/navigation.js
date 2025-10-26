@@ -1,9 +1,17 @@
 
 
-const gradingUrlRegex = /^https:\/\/app\.crowdmark\.com\/exams\/([^/]+)\/grading\/student\/(\d+)/;
+const gradingUrlRegex = /^https:\/\/app\.crowdmark\.com\/exams\/([^/]+)\/grading\/student\/(\d+)\/question\/([^/]+)/;
 
 export function isOnGradingPage() {
     return window.location.href.match(gradingUrlRegex) != null;
+}
+
+export function getCurrentExamName() {
+    return window.location.href.match(gradingUrlRegex)?.[1];
+}
+
+export function getCurrentQuestionSlug() {
+    return window.location.href.match(gradingUrlRegex)?.[3];
 }
 
 export function getCurrentBookletNumber() {
