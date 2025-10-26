@@ -101,3 +101,9 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
 .cm-comment.is-editing {
     z-index: 100;
 }
+
+.cm-tweaks-fast-grading-switch-enabled {
+    .grading-canvas__container > .grading-canvas__item:not(.is-active) {
+        display: none;
+    }
+}
