@@ -102,8 +102,12 @@ export function extendedAddressValueCallback(mapGetter, finalCallback) {
  * appended to the addressed value. If true is returned will continue appending
  * more characters.
  * @param {undefined|() => boolean} enabledPredicate
+ * @param {undefined|(key: string) => void} searchProgressCallback
  */
-export function registerAddressableKeybind(char, stateClass, valueCallback, enabledPredicate) {
+export function registerAddressableKeybind(char, stateClass, valueCallback, enabledPredicate, searchProgressCallback) {
+    if (!searchProgressCallback) {
+        searchProgressCallback = () => {};
+    }
     const rootEl = document.documentElement;
 
     let valueBuffer = "";
@@ -112,6 +116,7 @@ export function registerAddressableKeybind(char, stateClass, valueCallback, enab
         rootEl.classList.remove(stateClass);
         activeAddressableKeybinds.delete(char);
         valueBuffer = "";
+        searchProgressCallback(null);
     }
 
     document.addEventListener('keydown', (e) => {
@@ -126,6 +131,7 @@ export function registerAddressableKeybind(char, stateClass, valueCallback, enab
             if (key === char) {
                 rootEl.classList.add(stateClass);
                 activeAddressableKeybinds.add(char);
+                searchProgressCallback("");
             }
         } else {
             if (
@@ -143,6 +149,8 @@ export function registerAddressableKeybind(char, stateClass, valueCallback, enab
                 }
                 if (!result) {
                     stopWaiting();
+                } else {
+                    searchProgressCallback(valueBuffer);
                 }
             } else if (key === "escape") {
                 stopWaiting();
