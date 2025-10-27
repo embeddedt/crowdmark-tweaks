@@ -245,22 +245,25 @@ registerAddressableKeybind('w', 'cmt-waiting-for-comment-idx', commentTrie.creat
 }, (searchKey) => {
     if (!searchKey) {
         searchVisualizer.textContent = "";
+        document.documentElement.classList.remove("cm-tweaks-comment-search");
     } else {
+        if (searchVisualizer.textContent.trim() == "") {
+            for (const el of Array.from(document.querySelectorAll(".cm-tweaks-search-matches"))) {
+                el.classList.remove("cm-tweaks-search-matches");
+            }
+        }
         searchVisualizer.textContent = searchKey;
+        document.documentElement.classList.add("cm-tweaks-comment-search");
+        commentTrie.visit((prefix, data) => {
+            const el = data.rawElement;
+            if (!el) {
+                return;
+            }
+            if (prefix.startsWith(searchKey)) {
+                el.classList.add("cm-tweaks-search-matches");
+            }
+        })
     }
-    commentTrie.visit((prefix, data) => {
-        const el = data.rawElement;
-        if (!el) {
-            return;
-        }
-        if (prefix.startsWith(searchKey)) {
-            el.classList.add("cm-tweaks-search-matches");
-            el.classList.remove("cm-tweaks-search-not-matches");
-        } else {
-            el.classList.remove("cm-tweaks-search-matches");
-            el.classList.add("cm-tweaks-search-not-matches");
-        }
-    })
 });
 
 registerGlobalKeybind('x', () => {

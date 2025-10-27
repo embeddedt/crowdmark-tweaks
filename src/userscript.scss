@@ -81,12 +81,11 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
     .cmt-comment-virtualization-workaround {
         border-color: red;
     }
-
-    .cm-tweaks-search-not-matches {
-        display: none;
-    }
 }
 
+.cm-tweaks-comment-search li.tool__lib-comment:not(.cm-tweaks-search-matches) {
+    display: none;
+}
 
 #cmt-ai-assist-popover {
     position: fixed;
