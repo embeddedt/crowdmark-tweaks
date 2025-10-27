@@ -115,7 +115,10 @@ function applyCommentElementObserver(ul: HTMLUListElement) {
                 break
             }
             if (numComments >= 1 && child === li) {
-                macros.push(numComments.toString());
+                const commentNum = numComments.toString();
+                if (!macros.includes(commentNum)) {
+                    macros.push(commentNum);
+                }
                 break;
             }
         }
