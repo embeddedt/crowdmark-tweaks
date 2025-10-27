@@ -13,7 +13,9 @@ export class CommentTrie<V> {
     }
 
     private _insertChild(prefix: string, charIdx: number, value: V) {
-        this.usages++;
+        if (this.get(prefix) == null) {
+            this.usages++;
+        }
 
         if (charIdx == prefix.length) {
             if (this.element != null) {

@@ -18,17 +18,22 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
     }
 }
 
-.cm-tweaks-comment-macro-indicator {
+.cm-tweaks-comment-macro-indicator-container {
     display: none;
     .cmt-waiting-for-comment-idx & {
-        display: block;
+        display: flex;
     }
     position: absolute;
     right: 4px;
     bottom: 50%;
     transform: translateY(50%);
+}
+
+.cm-tweaks-comment-macro-indicator {
+    display: block;
 
     padding: 1px;
+    margin: 0 2px;
     line-height: normal !important;
     background-color: #ccc;
     border: 1px #777 solid;

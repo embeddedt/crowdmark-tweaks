@@ -98,40 +98,44 @@ function applyCommentElementObserver(ul: HTMLUListElement) {
             return;
         }
         let numComments = 0;
-        let selfMacro = null;
+        let macros: string[] = [];
 
-        if (selfMacro == null) {
-            // Determine if the LaTeX embeds a macro
-            const matchResult = li.textContent.match(commentMacroRegex);
-            if (matchResult) {
-                selfMacro = matchResult[1];
+        // Determine if the LaTeX embeds a macro
+        const matchResult = li.textContent.match(commentMacroRegex);
+        if (matchResult) {
+            macros.push(matchResult[1]);
+        }
+
+        // Determine the position of this child
+        for (const child of ul.children) {
+            if (child.tagName === "LI" && child.classList.contains("tool__lib-comment")) {
+                numComments++;
+            }
+            if (numComments > 10) {
+                break
+            }
+            if (numComments >= 1 && child === li) {
+                macros.push(numComments.toString());
+                break;
             }
         }
 
-        if (selfMacro == null) {
-            // Determine the position of this child
-            for (const child of ul.children) {
-                if (child.tagName === "LI" && child.classList.contains("tool__lib-comment")) {
-                    numComments++;
-                }
-                if (numComments >= 1 && numComments <= 10 && child === li) {
-                    selfMacro = numComments;
-                    break;
-                }
+        if (macros.length > 0) {
+            const macroContainer = document.createElement("div")
+            macroContainer.classList.add("cm-tweaks-comment-macro-indicator-container");
+            li.insertBefore(macroContainer, li.firstChild);
+            for (const macro of macros) {
+                const macroIndicator = document.createElement("span");
+                macroIndicator.textContent = macro;
+                macroIndicator.classList.add("cm-tweaks-comment-macro-indicator");
+                macroContainer.appendChild(macroIndicator);
+                commentTrie.insertChild(macro, {
+                    rawElement: li,
+                    applyHandler: () => applyComment(li)
+                });
             }
         }
 
-        // Inject the macro element if needed
-        if (selfMacro != null) {
-            const macroIndicator = document.createElement("span");
-            macroIndicator.textContent = selfMacro;
-            macroIndicator.classList.add("cm-tweaks-comment-macro-indicator");
-            li.insertBefore(macroIndicator, li.firstChild);
-            commentTrie.insertChild(selfMacro.toString(), {
-                rawElement: li,
-                applyHandler: () => applyComment(li)
-            });
-        }
     }
 
     function rebuildMacroList() {
