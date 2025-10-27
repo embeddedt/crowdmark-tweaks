@@ -9,13 +9,16 @@ export class CommentTrie<V> {
     }
 
     insertChild(prefix: string, value: V) {
+        const t = this.getNestedTrieForPrefix(prefix)
+        if (t != null) {
+            t.element = value
+            return
+        }
         this._insertChild(prefix, 0, value);
     }
 
     private _insertChild(prefix: string, charIdx: number, value: V) {
-        if (this.get(prefix) == null) {
-            this.usages++;
-        }
+        this.usages++
 
         if (charIdx == prefix.length) {
             if (this.element != null) {
