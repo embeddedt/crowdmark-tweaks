@@ -74,7 +74,7 @@ export function installGradingTimer() {
         setCurrentValue(currentSecondsValue + 1);
     }
 
-    registerGlobalKeybind('\\', () => {
+    registerGlobalKeybind('Reset grading timer', '\\', () => {
         setCurrentValue(0);
         kick();
     });

@@ -60,7 +60,7 @@ async function mathStreamReader(element, r) {
     console.log("--- Stream complete ---");
 }
 
-registerGlobalKeybind(';', async() => {
+registerGlobalKeybind('Transcribe using local AI', ';', async() => {
     const elements = document.elementsFromPoint(getCurrentMouseX(), getCurrentMouseY()).filter(e => e.tagName === 'DIV' && e.classList.contains("grading-canvas__image-capture-container"));
     if (elements.length == 0) {
         console.warn("cannot find image under mouse");

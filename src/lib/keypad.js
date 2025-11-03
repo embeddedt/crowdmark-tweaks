@@ -66,7 +66,7 @@ function incrementGrade(increment) {
 export function installHotkeyGradingHandler() {
     let lastIncrement = 0;
 
-    registerAddressableKeybind('a', 'cmt-waiting-for-digit', (incStr) => {
+    registerAddressableKeybind('Add points to grade', 'a', 'cmt-waiting-for-digit', (incStr) => {
         const increment = parseInt(incStr, 10);
         if (isNaN(increment)) {
             return;
@@ -75,7 +75,7 @@ export function installHotkeyGradingHandler() {
         incrementGrade(increment);
     });
 
-    registerGlobalKeybind('d', () => {
+    registerGlobalKeybind('Decrement grade by 1 point', 'd', () => {
         incrementGrade(-1);
     });
 }

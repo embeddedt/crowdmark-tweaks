@@ -28,14 +28,31 @@ function isRelevantKeydownEvent(e) {
     return true;
 }
 
+const keybindDefaultCharsMap = new Map();
+
+export function getCharForKeybind(name) {
+    let char = window.localStorage.getItem("CMT-KEYBIND:" + name);
+    if (char == null) {
+        char = keybindDefaultCharsMap.get(name);
+    }
+    return char;
+}
+
+export function setCharForKeybind(name, char) {
+    window.localStorage.setItem("CMT-KEYBIND:" + name, char);
+}
+
 /**
  *
- * @param {string} char
+ * @param {string} name
+ * @param {string} char default character
  * @param {() => void} pressCallback
  * @param {() => boolean} enabledPredicate
  */
-export function registerGlobalKeybind(char, pressCallback, enabledPredicate = () => true) {
+export function registerGlobalKeybind(name, defaultChar, pressCallback, enabledPredicate = () => true) {
+    keybindDefaultCharsMap.set(name, defaultChar);
     document.addEventListener('keydown', (e) => {
+        const char = getCharForKeybind(name);
         if (!isRelevantKeydownEvent(e) || e.repeat || areOtherKeybindsActive(char) || !enabledPredicate()) {
             return;
         }
@@ -96,30 +113,34 @@ export function extendedAddressValueCallback(mapGetter, finalCallback) {
 }
 
 /**
- *
- * @param {string} char
+ * @param {string} name
+ * @param {string} char default character
  * @param {(n: string) => boolean} callback invoked when a new character is
  * appended to the addressed value. If true is returned will continue appending
  * more characters.
  * @param {undefined|() => boolean} enabledPredicate
  * @param {undefined|(key: string) => void} searchProgressCallback
  */
-export function registerAddressableKeybind(char, stateClass, valueCallback, enabledPredicate, searchProgressCallback) {
+export function registerAddressableKeybind(name, defaultChar, stateClass, valueCallback, enabledPredicate, searchProgressCallback) {
     if (!searchProgressCallback) {
         searchProgressCallback = () => {};
     }
+
+    keybindDefaultCharsMap.set(name, defaultChar);
+
     const rootEl = document.documentElement;
 
     let valueBuffer = "";
 
     function stopWaiting() {
         rootEl.classList.remove(stateClass);
-        activeAddressableKeybinds.delete(char);
+        activeAddressableKeybinds.delete(getCharForKeybind(name));
         valueBuffer = "";
         searchProgressCallback(null);
     }
 
     document.addEventListener('keydown', (e) => {
+        const char = getCharForKeybind(name);
         if (!isRelevantKeydownEvent(e) || areOtherKeybindsActive(char) || (enabledPredicate && !enabledPredicate())) {
             return;
         }

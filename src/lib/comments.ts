@@ -235,7 +235,7 @@ async function deleteComment(theComment) {
     deleteBtn.click();
 }
 
-registerAddressableKeybind('w', 'cmt-waiting-for-comment-idx', commentTrie.createKeybindHandler(commentData => {
+registerAddressableKeybind('Enter comment macro mode', 'w', 'cmt-waiting-for-comment-idx', commentTrie.createKeybindHandler(commentData => {
     // Push a new list to the stack
     commentKeybindUndoStack.push([]);
     commentData.applyHandler();
@@ -266,7 +266,7 @@ registerAddressableKeybind('w', 'cmt-waiting-for-comment-idx', commentTrie.creat
     }
 });
 
-registerGlobalKeybind('x', () => {
+registerGlobalKeybind('Delete comment under cursor', 'x', () => {
     const theComment = getHoveredCommentElement();
     if (theComment == null) {
         return;
@@ -274,7 +274,7 @@ registerGlobalKeybind('x', () => {
     deleteComment(theComment);
 }, () => getHoveredCommentElement() != null);
 
-registerGlobalKeybind('u', async() => {
+registerGlobalKeybind('Undo last comment placement', 'u', async() => {
     const undoList = commentKeybindUndoStack.pop();
     for (const comment of undoList) {
         await deleteComment(comment);
