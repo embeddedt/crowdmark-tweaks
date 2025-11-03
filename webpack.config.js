@@ -11,7 +11,13 @@ export default {
     filename: 'crowdmark-tweaks.js'
   },
   resolve: {
-    extensions: ['.ts', '.js', '.json', '.wasm'],
+    extensions: ['.tsx', '.ts', '.jsx', '.js', '.json', '.wasm'],
+    alias: {
+        react: 'preact/compat',
+        'react-dom/test-utils': 'preact/test-utils',
+        'react-dom': 'preact/compat', // Must be below test-utils
+        'react/jsx-runtime': 'preact/jsx-runtime'
+    }
   },
   devServer: {
     webSocketServer: false,
@@ -28,6 +34,13 @@ export default {
         use: [
           "sass-loader"
         ],
+      },
+      {
+        test: /\.(?:js|mjs|cjs)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader'
+        }
       },
       {
         test: /\.tsx?$/,

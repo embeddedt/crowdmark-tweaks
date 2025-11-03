@@ -42,6 +42,10 @@ export function setCharForKeybind(name, char) {
     window.localStorage.setItem("CMT-KEYBIND:" + name, char);
 }
 
+export function getRegisteredKeybindIds() {
+    return Array.from(keybindDefaultCharsMap.keys());
+}
+
 /**
  *
  * @param {string} name

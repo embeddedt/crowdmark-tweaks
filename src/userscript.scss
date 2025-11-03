@@ -141,3 +141,41 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
         background-color: #444;
     }
 }
+
+.cmt-settings-dialog-split-pane {
+    display: flex;
+    .cmt-settings-dialog-tabs {
+        flex: 0;
+        padding: 1rem;
+        .cmt-active-tab {
+            font-weight: bold;
+        }
+    }
+    .cmt-settings-dialog-component {
+        flex: 1 1 auto;
+        padding: 1rem;
+    }
+}
+
+.cmt-settings-component-list {
+    margin-top: 30px;
+    > li {
+        border-bottom: 1px gray solid;
+        padding: 0.5rem 0;
+        display: flex;
+        align-items: center;
+        .cmt-list-item-name {
+            flex: 1 1 auto;
+        }
+        .keybind-char {
+            flex: 0;
+            min-width: 4rem;
+            text-align: center;
+            font-size: 1.25em;
+            cursor: pointer;
+            &.remapping {
+                color: yellow;
+            }
+        }
+    }
+}

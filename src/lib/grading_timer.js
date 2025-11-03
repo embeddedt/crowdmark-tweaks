@@ -1,6 +1,7 @@
 import { registerGlobalKeybind } from "./keybinds";
 
 import { getCurrentBookletNumber, isOnGradingPage } from "./navigation";
+import { isFeatureEnabled } from "./feature_flags";
 
 function formatTime(seconds) {
     const sign = seconds < 0 ? "-" : "";
@@ -15,6 +16,10 @@ function getSecondsPerBooklet() {
 }
 
 export function installGradingTimer() {
+    if (!isFeatureEnabled("Pacing timer")) {
+        return;
+    }
+
     let observer;
 
     /** @type {HTMLDivElement} */
