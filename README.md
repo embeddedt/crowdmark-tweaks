@@ -81,3 +81,11 @@ seconds indicate you need to speed up to remain on track.
 
 The timer can be manually reset to 0 seconds by pressing <kbd>\\</kbd>.
 
+### Customize keybinds
+
+The keybinds like <kbd>w</kbd> added by the tweak script can all be customized by opening the Tweaks dialog
+linked in the header of any grading page.
+
+<img width="948" height="491" alt="image" src="https://github.com/user-attachments/assets/2e155f17-c050-485b-b220-57c47e1f3847" />
+
+Click any key and then press the new desired key on your keyboard. You can press <kbd>Esc</kbd> to cancel rebinding a particular key.
