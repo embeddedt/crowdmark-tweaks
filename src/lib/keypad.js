@@ -75,13 +75,6 @@ export function installHotkeyGradingHandler() {
         incrementGrade(increment);
     });
 
-    registerGlobalKeybind('u', () => {
-        if (lastIncrement > 0) {
-            incrementGrade(-lastIncrement);
-            lastIncrement = 0;
-        }
-    })
-
     registerGlobalKeybind('d', () => {
         incrementGrade(-1);
     });

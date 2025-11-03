@@ -20,9 +20,6 @@ Several new keybinds have been added to speed up the process of grading.
   on the sidebar by that many points. This is useful when grading multi-part
   questions, as you can assign the desired points for each part one-by-one
   rather than needing to tally them mentally.
-
-  * Pressing <kbd>u</kbd> after this will undo the last increment (useful if you made a
-    mistake).
 * Pressing <kbd>d</kbd> decrements the pending grade on the sidebar by 1 point.
 
 #### Comment hotkeys
