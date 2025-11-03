@@ -6,6 +6,7 @@ import './lib/comments';
 import './lib/transcribe';
 import './lib/fast_booklet_switch';
 import './lib/booklet_prefetch';
+import './lib/tweaks_button';
 
 GM_addStyle(customCss);
 installHotkeyGradingHandler();
