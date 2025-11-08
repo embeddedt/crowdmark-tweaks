@@ -3,6 +3,9 @@
 An open-source userscript that adds additional features to the Crowdmark user
 interface.
 
+> [!CAUTION]
+> By installing and using this script, you acknowledge that you do so at your own risk. Although every effort has been made to ensure reliability, the authors provide this software as is, without any warranty, and are not responsible for any mistakes, data loss, or other problems that may arise during its use.
+
 ## How to use
 
 1. Ensure you have a userscript extension (I use [Tampermonkey](https://www.tampermonkey.net/), but any Greasemonkey derivative will likely work) installed in your browser.
