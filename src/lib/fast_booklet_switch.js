@@ -1,6 +1,25 @@
+import { registerFeatureFlagHandler } from "./feature_flags";
 
+function triggerDynamicImageLoad() {
+    // Dispatch a fake resize event to kick off the dynamic image
+    // loading, otherwise the evaluation may not be visible
+    console.log("trigger image load");
+    try {
+        window.dispatchEvent(new Event('resize'));
+    } catch (e) {
+        // ignore errors
+    }
+}
 
-document.body.classList.add("cm-tweaks-fast-grading-switch-enabled");
+registerFeatureFlagHandler("Hide questions not being graded", isEnabled => {
+    const clsName = "cm-tweaks-fast-grading-switch-enabled";
+    if (isEnabled) {
+        document.body.classList.add(clsName);
+    } else {
+        document.body.classList.remove(clsName);
+    }
+    triggerDynamicImageLoad();
+})
 
 const observer = new MutationObserver(mutations => {
     for (const mutation of mutations) {
@@ -10,14 +29,7 @@ const observer = new MutationObserver(mutations => {
                 el.matches("article.grading-canvas__item.grading-canvas__page") &&
                 el.classList.contains("is-active")
             ) {
-                // Dispatch a fake resize event to kick off the dynamic image
-                // loading, otherwise the evaluation may not be visible
-                console.log("trigger image load");
-                try {
-                    window.dispatchEvent(new Event('resize'));
-                } catch (e) {
-                    // ignore errors
-                }
+                triggerDynamicImageLoad();
             }
         }
     }
