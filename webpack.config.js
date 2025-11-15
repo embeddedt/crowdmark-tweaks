@@ -67,7 +67,8 @@ export default {
           homepage: 'https://github.com/embeddedt/crowdmark-tweaks',
           connect: ['app.crowdmark.com', 'localhost'],
           grant: ['GM_addStyle', 'GM_addElement', 'GM_xmlhttpRequest', 'window.onurlchange'],
-          version: `${original.version}-build.[buildTime]`
+          'run-at': 'document-idle',
+          version: `${original.version}-build.[buildTime]`,
         };
         if (!dev) {
           const prodURL = 'https://github.com/embeddedt/crowdmark-tweaks/raw/refs/heads/main/';

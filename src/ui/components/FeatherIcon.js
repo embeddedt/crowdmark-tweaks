@@ -1,7 +1,9 @@
 import { useEffect } from "preact/hooks";
+import { replaceFeatherIcons } from "../../lib/feather";
+
 export function FeatherIcon({name}) {
     useEffect(() => {
-        unsafeWindow.feather.replace();
+        replaceFeatherIcons();
     }, []);
     return <i data-feather={name}></i>;
 }

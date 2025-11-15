@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { getCharForKeybind, getRegisteredKeybindIds, setCharForKeybind } from "./keybinds";
 import { isFeatureEnabled, featureFlags, setFeatureEnabled } from "./feature_flags";
 import { Slider } from "../ui/components/Slider";
+import { replaceFeatherIcons } from "./feather";
 
 const topbarLinkContainers = document.getElementsByClassName("grading-topbar__links");
 
@@ -100,7 +101,7 @@ function updateTopbars() {
             btn.insertBefore(icon, btn.firstChild);
             btn.addEventListener("click", openTweaksDialog);
             topbar.insertBefore(btn, topbar.firstChild);
-            unsafeWindow.feather.replace();
+            replaceFeatherIcons();
         }
     }
 }
