@@ -66,7 +66,7 @@ export default {
           match: 'https://app.crowdmark.com/*',
           homepage: 'https://github.com/embeddedt/crowdmark-tweaks',
           connect: ['app.crowdmark.com', 'localhost'],
-          grant: ['GM_addStyle', 'GM_addElement', 'GM_xmlhttpRequest', 'window.onurlchange'],
+          grant: ['GM_addStyle', 'GM_addElement', 'GM_xmlhttpRequest'],
           'run-at': 'document-idle',
           version: `${original.version}-build.[buildTime]`,
         };

@@ -25,33 +25,16 @@ export function getCurrentBookletNumber() {
 }
 
 (function() {
-    const pushState = history.pushState;
-    const replaceState = history.replaceState;
-
-    let lastUrl = location.href;
-
-    function fireUrlChangeEvent() {
-        const event = new CustomEvent("urlchange", { detail: { url: location.href } });
-        window.dispatchEvent(event);
-    }
-
-    function checkUrl() {
-        const url = location.href;
-        if (url !== lastUrl) {
-        lastUrl = url;
-        fireUrlChangeEvent();
+    let lastUrl = null;
+    new MutationObserver(() => {
+        if (location.href !== lastUrl) {
+            window.dispatchEvent(new CustomEvent("urlchange", {
+                detail: {
+                    oldUrl: lastUrl,
+                    url: location.href
+                }
+            }))
+            lastUrl = location.href;
         }
-    }
-
-    history.pushState = function(...args) {
-      pushState.apply(this, args);
-      checkUrl();
-    };
-
-    history.replaceState = function(...args) {
-      replaceState.apply(this, args);
-      checkUrl();
-    };
-
-    window.addEventListener("popstate", checkUrl);
+    }).observe(document, {subtree: true, childList: true})
 })();
