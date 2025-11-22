@@ -28,12 +28,20 @@ function isRelevantKeydownEvent(e) {
     return true;
 }
 
+export function isValidKeybindKey(key) {
+    key = key.toLowerCase();
+    return key.length === 1 || key === "tab";
+}
+
 const keybindDefaultCharsMap = new Map();
 
 export function getCharForKeybind(name) {
     let char = window.localStorage.getItem("CMT-KEYBIND:" + name);
     if (char == null) {
         char = keybindDefaultCharsMap.get(name);
+    }
+    if (char == "null") {
+        char = null;
     }
     return char;
 }
@@ -61,7 +69,7 @@ export function registerGlobalKeybind(name, defaultChar, pressCallback, enabledP
             return;
         }
 
-        if (e.key.toLowerCase() === char) {
+        if (isValidKeybindKey(e.key) && e.key.toLowerCase() === char) {
             e.stopImmediatePropagation();
             e.preventDefault();
             setTimeout(() => pressCallback(), 0);
@@ -160,7 +168,7 @@ export function registerAddressableKeybind(name, defaultChar, stateClass, valueC
             }
         } else {
             if (
-                key.length === 1 && // single character
+                isValidKeybindKey(key) && // single character
                 !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey // no modifiers
             ) {
                 valueBuffer += key;

@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { ModalCloseButton } from "../ui/components/Modal";
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { getCharForKeybind, getRegisteredKeybindIds, setCharForKeybind } from "./keybinds";
+import { getCharForKeybind, getRegisteredKeybindIds, setCharForKeybind, isValidKeybindKey } from "./keybinds";
 import { isFeatureEnabled, featureFlags, setFeatureEnabled } from "./feature_flags";
 import { Slider } from "../ui/components/Slider";
 import { replaceFeatherIcons } from "./feather";
@@ -11,7 +11,7 @@ const topbarLinkContainers = document.getElementsByClassName("grading-topbar__li
 function Keybind({ name, onClick, isRemapping }) {
     return <li>
         <span className="cmt-list-item-name">{name}</span>
-        <span className={`keybind-char code code--line ${isRemapping ? "remapping" : ""}`} onClick={onClick}>{getCharForKeybind(name)}</span>
+        <span className={`keybind-char code code--line ${isRemapping ? "remapping" : ""}`} onClick={onClick}>{getCharForKeybind(name) ?? 'NONE'}</span>
     </li>;
 }
 
@@ -21,19 +21,23 @@ function KeybindsDialog() {
     useEffect(() => {
         const cb = e => {
             if (remapping != null) {
+                const finishRemapping = (k) => {
+                    setCharForKeybind(remapping, k);
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                    setRemapping(null);
+                };
                 const key = e.key.toLowerCase();
                 if (key === "escape") {
                     setRemapping(null);
                     return;
-                }
-                if (
-                    key.length === 1 && // single character
+                } else if (key === "backspace") {
+                    finishRemapping(null);
+                } else if (
+                    isValidKeybindKey(key) &&
                     !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey // no modifiers
                 ) {
-                    setCharForKeybind(remapping, key);
-                    e.stopImmediatePropagation();
-                    e.preventDefault();
-                    setRemapping(null);
+                    finishRemapping(key);
                 }
             }
         };
