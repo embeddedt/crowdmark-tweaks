@@ -1,4 +1,6 @@
 import { registerFeatureFlagHandler } from "./feature_flags";
+import { registerGlobalKeybind } from "./keybinds";
+import { simulateClick } from "./mouse";
 
 function triggerDynamicImageLoad() {
     // Dispatch a fake resize event to kick off the dynamic image
@@ -56,3 +58,12 @@ function observeExistingAndFuture() {
 }
 
 observeExistingAndFuture();
+
+registerGlobalKeybind("Switch to next ungraded booklet", null, () => {
+    const nextUngradedButton = document.querySelector(".grading-sidebar__next-ungraded button");
+    if (nextUngradedButton == null) {
+        console.warn("Cannot find next ungraded booklet button");
+        return;
+    }
+    simulateClick(nextUngradedButton);
+});
