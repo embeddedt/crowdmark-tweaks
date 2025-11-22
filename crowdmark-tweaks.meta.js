@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name Crowdmark Tweaks
 // @description Useful tweaks for Crowdmark
-// @version 0.1.0-build.2025-11-20T23:25:09.297Z
+// @version 0.1.0-build.2025-11-22T00:15:25.132Z
 // @author embeddedt
 // @homepage https://github.com/embeddedt/crowdmark-tweaks
 // @supportURL https://github.com/embeddedt/crowdmark-tweaks/issues
