@@ -43,12 +43,13 @@ You can also set a custom keybind for the comment by adding
 a LaTeX `\phantom` directive at the start. It is also useful to wrap that directive
 in `\rlap` so that it won't take up space in the comment visually.
 For example, the comment `$\rlap{\phantom{e}}$excellent work`
-will be applied when you press <kbd>e</kbd>. (Note: omitting the space between the trailing `$` and the first 
-character of the message is intentional to avoid an extra space being visible in the final rendered comment.)
+will be applied when you press <kbd>e</kbd>.
 
-<img width="319" height="269" alt="image" src="https://github.com/user-attachments/assets/6269c320-7434-424b-8b8b-d61576385d16" />
+<img width="203" height="182" alt="img" src="https://github.com/user-attachments/assets/cb235b05-2083-414d-b2db-c97a45c0ec05" />
 
-<img width="203" height="182" alt="image" src="https://github.com/user-attachments/assets/d187d890-5954-46e3-a835-dfb118f7e281" />
+> [!NOTE]
+> Omitting the space between the trailing `$` and the first character of the message
+> is intentional to avoid an extra space being visible in the final rendered comment.
 
 Custom keybinds longer than one character are also supported.  You only need
 to enter as many keys as necessary to disambiguate the desired comment.
