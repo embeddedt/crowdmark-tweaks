@@ -42,8 +42,9 @@ in the comment library widget can be applied by pressing <kbd>1</kbd> through <k
 You can also set a custom keybind for the comment by adding
 a LaTeX `\phantom` directive at the start. It is also useful to wrap that directive
 in `\rlap` so that it won't take up space in the comment visually.
-For example, the comment `$\rlap{\phantom{e}}$ excellent work`
-will be applied when you press <kbd>e</kbd>.
+For example, the comment `$\rlap{\phantom{e}}$excellent work`
+will be applied when you press <kbd>e</kbd>. (Note: omitting the space between the trailing `$` and the first 
+character of the message is intentional to avoid an extra space being visible in the final rendered comment.)
 
 <img width="319" height="269" alt="image" src="https://github.com/user-attachments/assets/6269c320-7434-424b-8b8b-d61576385d16" />
 
@@ -56,12 +57,6 @@ Example: if you have comments with keybinds `ex`, `ez`, and `mo`, then pressing 
 by <kbd>e</kbd> will not insert a comment - you must press <kbd>x</kbd> or <kbd>z</kbd> to fully disambiguate.
 However, pressing <kbd>w</kbd> followed by <kbd>m</kbd> will immediately insert the comment with
 keybind `mo`.
-
-> [!NOTE]
-> The contents of `\rlap{\phantom` are not visible to the student. However, a small
-> extra space will be visible at the start of the comment. It is up to you to
-> decide if this minor visual blemish is worthwhile for the time savings of
-> being able to directly hotkey more than 9 comments at once.
 
 ### Pacing timer
 
