@@ -62,7 +62,7 @@ function FeatureFlag({name}) {
 
 function FeaturesDialog() {
     return <ul className="cmt-settings-component-list">
-        {featureFlags.map(flag => <FeatureFlag key={flag} name={flag}/>)}
+        {Object.keys(featureFlags).map(flag => <FeatureFlag key={flag} name={flag}/>)}
     </ul>
 }
 

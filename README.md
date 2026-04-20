@@ -15,6 +15,10 @@ interface.
 
 ## Features
 
+### Booklet prefetching (beta)
+
+When enabled via the Tweaks menu, the script aggressively prefetches data for the next ungraded booklet in the background. This makes the next booklet load nearly instantly once the transition animation completes.
+
 ### Grading keybinds
 
 Several new keybinds have been added to speed up the process of grading.

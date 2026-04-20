@@ -1,21 +1,19 @@
 
-export const featureFlags = [
-    "Pacing timer",
-    "Hide questions not being graded"
-] as const;
+export const featureFlags = {
+    "Pacing timer": true,
+    "Hide questions not being graded": true,
+    "Booklet prefetch": false,
+} as const;
 
-type FeatureFlag = typeof featureFlags[number];
+type FeatureFlag = keyof typeof featureFlags;
 
 type FeatureFlagHandler = (isEnabled: boolean) => void;
 
 const featureFlagHandlers: Map<string, FeatureFlagHandler[]> = new Map();
 
 export function isFeatureEnabled(name: FeatureFlag) {
-    if (!featureFlags.includes(name)) {
-        throw new Error("Unexpected feature flag name: " + name);
-    }
     const val = window.localStorage.getItem("CMT-FEATURE:" + name);
-    return val == null || val === "true";
+    return val == null ? featureFlags[name] : val === "true";
 }
 
 export function setFeatureEnabled(name: FeatureFlag, val: any) {
@@ -33,6 +31,6 @@ export function registerFeatureFlagHandler(name: FeatureFlag, handler: FeatureFl
     if (!featureFlagHandlers.has(name)) {
         featureFlagHandlers.set(name, []);
     }
-    featureFlagHandlers.get(name).push(handler);
+    featureFlagHandlers.get(name)!!.push(handler);
     handler(isFeatureEnabled(name));
 }
