@@ -19,6 +19,15 @@ interface.
 
 When enabled via the Tweaks menu, the script aggressively prefetches data for the next ungraded booklet in the background. This makes the next booklet load nearly instantly once the transition animation completes.
 
+### Hide questions not being graded
+
+When enabled via the Tweaks menu, only the question currently being graded is
+shown on the grading canvas; every other question is hidden until you switch
+to it.
+
+A separate keybind, unbound by default, can be assigned in the Tweaks dialog
+to switch directly to the next ungraded booklet.
+
 ### Grading keybinds
 
 Several new keybinds have been added to speed up the process of grading.
@@ -63,6 +72,20 @@ by <kbd>e</kbd> will not insert a comment - you must press <kbd>x</kbd> or <kbd>
 However, pressing <kbd>w</kbd> followed by <kbd>m</kbd> will immediately insert the comment with
 keybind `mo`.
 
+While disambiguating, comments whose keybind matches what you've typed so far are highlighted,
+and the characters typed are shown next to the comment library.
+
+Hovering over a placed comment and pressing <kbd>x</kbd> deletes it. Pressing <kbd>u</kbd> undoes
+the last comment (or group of comments) placed via autoapply.
+
+Comments can also be grouped so that a single keybind applies several of them in sequence. To
+define a group, create a comment in the library whose text begins with `cmt_config:` followed by
+a JSON object, e.g. `cmt_config:{"groups":{"multi":["ex","mo"]}}`. Pressing <kbd>w</kbd> followed by
+`multi` will then apply the `ex` and `mo` comments in order. Group keybinds share the same
+disambiguation rules as regular comment keybinds - you only need to type as many characters as
+necessary to distinguish the group from any other comment or group. This configuration comment
+is never itself applied to a submission.
+
 ### Pacing timer
 
 A timer has been added on the right sidebar below the evaluator's name.
@@ -92,3 +115,8 @@ linked in the header of any grading page.
 <img width="948" height="491" alt="image" src="https://github.com/user-attachments/assets/2e155f17-c050-485b-b220-57c47e1f3847" />
 
 Click any key and then press the new desired key on your keyboard. You can press <kbd>Esc</kbd> to cancel rebinding a particular key.
+
+### Toggle features
+
+Optional features such as booklet prefetching and hiding questions not being graded can be turned
+on or off from the Features tab of the Tweaks dialog.
