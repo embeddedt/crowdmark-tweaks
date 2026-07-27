@@ -153,6 +153,9 @@ export function registerAddressableKeybind(
 
         if (!waitingForDigit) {
             if (key === char) {
+                // Stop Crowdmark's native behavior (if any)
+                e.stopImmediatePropagation();
+                e.preventDefault();
                 rootEl.classList.add(stateClass);
                 activeAddressableKeybinds.add(char);
                 onSearchProgress("");
