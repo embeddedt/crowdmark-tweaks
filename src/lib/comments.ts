@@ -14,10 +14,16 @@ const LIBRARY_COMMENT_SELECTOR = 'li.grading-e-sidebar-category__list-item:has(>
 const LIBRARY_COMMENT_DRAG_SELECTOR = 'button.grading-e-sidebar-category__comment-container';
 /** The text of a library comment. */
 const LIBRARY_COMMENT_TEXT_SELECTOR = '.grading-e-sidebar-comment__content';
-/** Class of an <aside> holding a comment placed on the canvas. */
-const PLACED_COMMENT_CLASS = 'grading-e-comment';
-/** The clickable body of a comment placed on the canvas. */
+/** A comment placed on the canvas. */
+const PLACED_COMMENT_SELECTOR = 'aside.grading-e-comment';
+/** The clickable body within a placed comment. */
 const PLACED_COMMENT_CONTENT_SELECTOR = '.grading-e-comment__content';
+/**
+ * The pin of a placed comment. Crowdmark gives it an id derived from the
+ * comment itself, which is the only handle on a comment that survives the
+ * element being replaced by a rerender.
+ */
+const PLACED_COMMENT_PIN_SELECTOR = '.grading-e-comment-pin';
 /** The area of a booklet page that accepts annotations. */
 const ANNOTATION_CAPTURE_SELECTOR = '.annotation-capture';
 
@@ -88,9 +94,14 @@ async function applyComment(commentElement: Element, mouseX = getCurrentMouseX()
     simulateDragAndDrop(dragHandle, mouseX, mouseY);
     const undoList = commentKeybindUndoStack[commentKeybindUndoStack.length - 1];
     const element = await waitForElementUnderMouse(e => {
-        return e.classList.contains(PLACED_COMMENT_CLASS);
+        return e.matches(PLACED_COMMENT_SELECTOR);
     }, mouseX + 10, mouseY + 10);
-    undoList.push(element);
+    const commentId = getPlacedCommentId(element);
+    if (commentId == null) {
+        console.warn("placed comment cannot be identified, so it will not be undoable", element);
+    } else {
+        undoList.push(commentId);
+    }
     return element;
 }
 
@@ -197,7 +208,16 @@ function applyCommentElementObserver(list: HTMLOListElement) {
     observer.observe(list, { childList: true, subtree: true });
 }
 
-let commentKeybindUndoStack: Element[][] = [];
+/** Comments are undone by id: the elements themselves do not survive rerenders. */
+let commentKeybindUndoStack: string[][] = [];
+
+function getPlacedCommentId(placedComment: Element) {
+    return placedComment.querySelector(PLACED_COMMENT_PIN_SELECTOR)?.id || null;
+}
+
+function findPlacedComment(commentId: string) {
+    return document.getElementById(commentId)?.closest(PLACED_COMMENT_SELECTOR) ?? null;
+}
 
 window.addEventListener('urlchange', () => {
     commentKeybindUndoStack = [];
@@ -234,7 +254,7 @@ export function getConfigurationCommentBlob() {
 function getHoveredCommentElement() {
     const elements = document.elementsFromPoint(getCurrentMouseX(), getCurrentMouseY());
     for (const el of elements) {
-        const comment = el.closest(PLACED_COMMENT_CONTENT_SELECTOR);
+        const comment = el.closest(PLACED_COMMENT_SELECTOR);
         if (comment != null) {
             return comment;
         }
@@ -259,7 +279,12 @@ function findFlyoutMenuItem(label: string) {
         .find(button => button.textContent.trim() == label);
 }
 
-async function deleteComment(theComment: Element) {
+async function deleteComment(placedComment: Element) {
+    const theComment = placedComment.querySelector(PLACED_COMMENT_CONTENT_SELECTOR);
+    if (theComment == null) {
+        console.warn("comment has no visible body to open", placedComment);
+        return;
+    }
     // Clicking a comment opens its editor, which hides deletion behind a menu
     simulateClick(theComment);
     const menuTrigger = await waitForElement("comment options menu", () =>
@@ -310,7 +335,13 @@ registerGlobalKeybind('Delete comment under cursor', 'x', () => {
 
 registerGlobalKeybind('Undo last comment placement', 'u', async() => {
     const undoList = commentKeybindUndoStack.pop() ?? [];
-    for (const comment of undoList) {
+    for (const commentId of undoList) {
+        // Resolved one at a time: deleting a comment rerenders the others
+        const comment = findPlacedComment(commentId);
+        if (comment == null) {
+            console.warn("comment to undo is no longer on the page", commentId);
+            continue;
+        }
         await deleteComment(comment);
     }
 }, () => commentKeybindUndoStack.length > 0);
