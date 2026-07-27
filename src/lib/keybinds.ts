@@ -25,7 +25,7 @@ function isRelevantKeydownEvent(e: KeyboardEvent) {
 
 export function isValidKeybindKey(key: string) {
     key = key.toLowerCase();
-    return key.length === 1 || key === "tab";
+    return key.length === 1 || key === "tab" || key === "enter";
 }
 
 const keybindDefaultCharsMap = new Map<string, string>();
@@ -57,6 +57,12 @@ export function registerGlobalKeybind(name: string, defaultChar: string, pressCa
     document.addEventListener('keydown', (e) => {
         const char = getCharForKeybind(name);
         if (!isRelevantKeydownEvent(e) || e.repeat || areOtherKeybindsActive(char) || !enabledPredicate()) {
+            return;
+        }
+
+        // Crowdmark binds modified variants of keys we use — shift+Enter is its
+        // own "next ungraded" — so an unmodified press is the only match
+        if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) {
             return;
         }
 

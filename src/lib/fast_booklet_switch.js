@@ -68,8 +68,10 @@ function observeExistingAndFuture() {
 
 observeExistingAndFuture();
 
-registerGlobalKeybind("Switch to next ungraded booklet", null, () => {
-    const nextUngradedButton = document.querySelector(".grading-sidebar__next-ungraded button");
+// Crowdmark's own shortcut for this is shift+Enter; plain Enter is what
+// everyone has in their fingers from the old interface
+registerGlobalKeybind("Switch to next ungraded booklet", "enter", () => {
+    const nextUngradedButton = document.querySelector(".grading-e-topbar__next-ungraded-button");
     if (nextUngradedButton == null) {
         console.warn("Cannot find next ungraded booklet button");
         return;
