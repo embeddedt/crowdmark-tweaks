@@ -23,8 +23,10 @@
 
 
 .cmt-waiting-for-digit {
-    .grading-sidebar__evaluation .evaluation__score-block {
-        border-color: red;
+    .grading-e-sidebar-header__score-block {
+        /* the score block has no border of its own to recolour */
+        outline: 2px solid red;
+        outline-offset: -2px;
     }
 }
 
