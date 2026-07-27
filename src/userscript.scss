@@ -113,7 +113,7 @@
 }
 
 .cm-tweaks-fast-grading-switch-enabled {
-    .grading-canvas__container > .grading-canvas__item:not(.is-active) {
+    ol.grading-e-canvas-item-list > li.grading-e-gradable-item:not(.grading-e-gradable-item--is-active) {
         display: none;
     }
 }

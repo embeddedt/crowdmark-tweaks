@@ -2,6 +2,15 @@ import { registerFeatureFlagHandler } from "./feature_flags";
 import { registerGlobalKeybind } from "./keybinds";
 import { simulateClick } from "./mouse";
 
+/**
+ * A question in the canvas. The booklet's other questions stay in the list as
+ * siblings — switching questions updates classes in place rather than
+ * rebuilding the canvas.
+ */
+const GRADABLE_ITEM_SELECTOR = "li.grading-e-gradable-item";
+/** Marks the question currently being graded. */
+const ACTIVE_ITEM_CLASS = "grading-e-gradable-item--is-active";
+
 function triggerDynamicImageLoad() {
     // Dispatch a fake resize event to kick off the dynamic image
     // loading, otherwise the evaluation may not be visible
@@ -28,8 +37,8 @@ const observer = new MutationObserver(mutations => {
         if (mutation.type === "attributes" && mutation.attributeName === "class") {
             const el = mutation.target;
             if (
-                el.matches("article.grading-canvas__item.grading-canvas__page") &&
-                el.classList.contains("is-active")
+                el.matches(GRADABLE_ITEM_SELECTOR) &&
+                el.classList.contains(ACTIVE_ITEM_CLASS)
             ) {
                 triggerDynamicImageLoad();
             }
@@ -37,17 +46,17 @@ const observer = new MutationObserver(mutations => {
     }
 });
 
-// Attach this mutation observer to any grading canvas pages
+// Attach this mutation observer to any grading canvas questions
 
 function observeExistingAndFuture() {
-    document.querySelectorAll("article.grading-canvas__item.grading-canvas__page")
+    document.querySelectorAll(GRADABLE_ITEM_SELECTOR)
         .forEach(el => observer.observe(el, { attributes: true }));
 
     const domObserver = new MutationObserver(mutations => {
         for (const mutation of mutations) {
             for (const node of mutation.addedNodes) {
                 if (!(node instanceof HTMLElement)) continue;
-                if (node.matches("article.grading-canvas__item.grading-canvas__page")) {
+                if (node.matches(GRADABLE_ITEM_SELECTOR)) {
                     observer.observe(node, { attributes: true });
                 }
             }
