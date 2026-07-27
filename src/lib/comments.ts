@@ -1,32 +1,49 @@
-import { getCurrentMouseX, getCurrentMouseY, simulateClick, simulateMouseDragTo, waitForElementUnderMouse } from "./mouse";
+import { getCurrentMouseX, getCurrentMouseY, simulateClick, simulateDragAndDrop, waitForElementUnderMouse } from "./mouse";
 import { registerAddressableKeybind, registerGlobalKeybind } from './keybinds';
-import { waitForElementToExist } from "./mutationHelper";
 import { CommentTrie } from './comment_trie';
+
+/** The comment library list in the grading sidebar. */
+const COMMENT_LIST_SELECTOR = 'ol.grading-e-sidebar__list';
+/**
+ * A single library comment. The loading skeleton uses <div>s with the same
+ * class and the "Add a comment"/inline editor rows have no comment container,
+ * so requiring both the <li> and the button excludes all of them.
+ */
+const LIBRARY_COMMENT_SELECTOR = 'li.grading-e-sidebar-category__list-item:has(> button.grading-e-sidebar-category__comment-container)';
+/** The draggable element within a library comment. */
+const LIBRARY_COMMENT_DRAG_SELECTOR = 'button.grading-e-sidebar-category__comment-container';
+/** The text of a library comment. */
+const LIBRARY_COMMENT_TEXT_SELECTOR = '.grading-e-sidebar-comment__content';
+/** Class of an <aside> holding a comment placed on the canvas. */
+const PLACED_COMMENT_CLASS = 'grading-e-comment';
+/** The clickable body of a comment placed on the canvas. */
+const PLACED_COMMENT_CONTENT_SELECTOR = '.grading-e-comment__content';
+/** The area of a booklet page that accepts annotations. */
+const ANNOTATION_CAPTURE_SELECTOR = '.annotation-capture';
 
 let commentListWrapper: HTMLDivElement | null = null;
 let searchVisualizer: HTMLSpanElement | null = null;
 
-// Wrap the comment library in a div and make the <ul> full height. This
-// effectively disables the list virtualization and forces every comment element
-// to be loaded. We need all comments in memory in order to trigger them by
-// keybind.
+// Wrap the comment library in a div and make the list full height. The new
+// grading interface no longer virtualizes this list, so the wrapper only exists
+// to host the search visualizer and the "waiting for a comment macro" outline.
 (function () {
-    const SELECTOR = 'ul.grading-toolbar__submenu.grading-toolbar__submenu--library';
-    const WRAPPER_CLASS = 'cmt-comment-virtualization-workaround';
+    const SELECTOR = COMMENT_LIST_SELECTOR;
+    const WRAPPER_CLASS = 'cmt-comment-list-wrapper';
 
-    function wrapTarget(ul: Element | null) {
-      if (!ul || ul.parentElement?.classList.contains(WRAPPER_CLASS)) return;
+    function wrapTarget(list: Element | null) {
+      if (!list || list.parentElement?.classList.contains(WRAPPER_CLASS)) return;
       const wrapper = document.createElement('div');
       wrapper.className = WRAPPER_CLASS;
-      ul.replaceWith(wrapper);
-      wrapper.appendChild(ul);
+      list.replaceWith(wrapper);
+      wrapper.appendChild(list);
 
       searchVisualizer = document.createElement("span");
       searchVisualizer.classList.add("cm-tweaks-search-visual");
       wrapper.appendChild(searchVisualizer);
 
       commentListWrapper = wrapper;
-      applyCommentElementObserver(ul as HTMLUListElement);
+      applyCommentElementObserver(list as HTMLOListElement);
     }
 
     const existing = document.querySelector(SELECTOR);
@@ -63,10 +80,15 @@ const commentTrie: CommentTrie<{
 
 async function applyComment(commentElement: Element, mouseX = getCurrentMouseX(), mouseY = getCurrentMouseY()) {
     console.log("Auto-apply comment", commentElement);
-    simulateMouseDragTo(commentElement, mouseX, mouseY);
+    const dragHandle = commentElement.querySelector<HTMLElement>(LIBRARY_COMMENT_DRAG_SELECTOR);
+    if (dragHandle == null) {
+        console.warn("comment has no drag handle", commentElement);
+        return null;
+    }
+    simulateDragAndDrop(dragHandle, mouseX, mouseY);
     const undoList = commentKeybindUndoStack[commentKeybindUndoStack.length - 1];
     const element = await waitForElementUnderMouse(e => {
-        return e.classList.contains("comment__preview-container");
+        return e.classList.contains(PLACED_COMMENT_CLASS);
     }, mouseX + 10, mouseY + 10);
     undoList.push(element);
     return element;
@@ -92,12 +114,11 @@ async function applyCommentGroup(groupList: string[]) {
     }
 }
 
-function applyCommentElementObserver(ul: HTMLUListElement) {
-    function checkForMacro(li: HTMLLIElement) {
+function applyCommentElementObserver(list: HTMLOListElement) {
+    function checkForMacro(li: HTMLLIElement, commentNum: number) {
         if (li.classList.contains("cm-tweaks-macro-comment")) {
             return;
         }
-        let numComments = 0;
         let macros: string[] = [];
 
         // Determine if the LaTeX embeds a macro
@@ -106,20 +127,11 @@ function applyCommentElementObserver(ul: HTMLUListElement) {
             macros.push(matchResult[1]);
         }
 
-        // Determine the position of this child
-        for (const child of ul.children) {
-            if (child.tagName === "LI" && child.classList.contains("tool__lib-comment")) {
-                numComments++;
-            }
-            if (numComments > 10) {
-                break
-            }
-            if (numComments >= 1 && child === li) {
-                const commentNum = numComments == 10 ? "0" : numComments.toString();
-                if (!macros.includes(commentNum)) {
-                    macros.push(commentNum);
-                }
-                break;
+        // The first ten comments are bound to their position in the list
+        if (commentNum <= 10) {
+            const commentKey = commentNum == 10 ? "0" : commentNum.toString();
+            if (!macros.includes(commentKey)) {
+                macros.push(commentKey);
             }
         }
 
@@ -142,14 +154,14 @@ function applyCommentElementObserver(ul: HTMLUListElement) {
     }
 
     function rebuildMacroList() {
-        for (const el of Array.from(ul.querySelectorAll(".cm-tweaks-comment-macro-indicator"))) {
+        for (const el of Array.from(list.querySelectorAll(".cm-tweaks-comment-macro-indicator"))) {
             el.parentNode?.removeChild(el);
         }
         commentTrie.clear();
-        for (const el of ul.querySelectorAll("li.tool__lib-comment:not(.lib-comment--loading)")) {
-            if (el.tagName === "LI") {
-                checkForMacro(el as HTMLLIElement);
-            }
+        let commentNum = 0;
+        for (const el of list.querySelectorAll(LIBRARY_COMMENT_SELECTOR)) {
+            commentNum++;
+            checkForMacro(el as HTMLLIElement, commentNum);
         }
         const config = getConfigurationCommentBlob();
 
@@ -170,7 +182,9 @@ function applyCommentElementObserver(ul: HTMLUListElement) {
         for (const mutation of mutations) {
             for (const node of mutation.addedNodes) {
                 if (!(node instanceof HTMLElement)) continue;
-                if (node.tagName !== "LI" || !node.classList.contains("tool__lib-comment")) continue;
+                // Comments are nested inside a category, so a rerender may add
+                // either a single comment or a whole category at once.
+                if (!node.matches(LIBRARY_COMMENT_SELECTOR) && node.querySelector(LIBRARY_COMMENT_SELECTOR) == null) continue;
                 needListRebuild = true;
                 break;
             }
@@ -180,7 +194,7 @@ function applyCommentElementObserver(ul: HTMLUListElement) {
         }
     });
 
-    observer.observe(ul, { childList: true });
+    observer.observe(list, { childList: true, subtree: true });
 }
 
 let commentKeybindUndoStack: Element[][] = [];
@@ -196,11 +210,11 @@ const CMT_CONFIG_HEADER = "cmt_config:";
  * Kudos to @motiwalam for the idea.
  */
 export function getConfigurationCommentBlob() {
-    const librarySidebar = document.querySelector("ul.grading-toolbar__submenu--library");
+    const librarySidebar = document.querySelector(COMMENT_LIST_SELECTOR);
     if (librarySidebar) {
-        const commentElements = Array.from(librarySidebar.querySelectorAll("li.tool__lib-comment:not(.lib-comment--no-comment)"));
+        const commentElements = Array.from(librarySidebar.querySelectorAll(LIBRARY_COMMENT_SELECTOR));
         for (let element of commentElements) {
-            const text = element.querySelector(".lib-comment__text")?.textContent.trim() ?? "";
+            const text = element.querySelector(LIBRARY_COMMENT_TEXT_SELECTOR)?.textContent.trim() ?? "";
             if (text.startsWith(CMT_CONFIG_HEADER)) {
                 try {
                     return JSON.parse(text.substring(CMT_CONFIG_HEADER.length));
@@ -220,7 +234,7 @@ export function getConfigurationCommentBlob() {
 function getHoveredCommentElement() {
     const elements = document.elementsFromPoint(getCurrentMouseX(), getCurrentMouseY());
     for (const el of elements) {
-        const comment = el.closest("div.comment__preview");
+        const comment = el.closest(PLACED_COMMENT_CONTENT_SELECTOR);
         if (comment != null) {
             return comment;
         }
@@ -228,9 +242,30 @@ function getHoveredCommentElement() {
     return null;
 }
 
+async function waitForElement<T extends Element>(description: string, find: () => T | null | undefined): Promise<T> {
+    for (let tries = 0; tries < 100; tries++) {
+        const el = find();
+        if (el) {
+            return el;
+        }
+        await new Promise(r => setTimeout(r, 50));
+    }
+    throw new Error("Could not find " + description);
+}
+
+function findFlyoutMenuItem(label: string) {
+    // The flyout menu is rendered into a wormhole outside of the comment
+    return Array.from(document.querySelectorAll<HTMLElement>(".flyout-menu__content button"))
+        .find(button => button.textContent.trim() == label);
+}
+
 async function deleteComment(theComment: Element) {
+    // Clicking a comment opens its editor, which hides deletion behind a menu
     simulateClick(theComment);
-    const deleteBtn = await waitForElementToExist(theComment.parentElement!, e => e.tagName == 'BUTTON' && e.textContent.trim() == 'Delete' && e.closest(".comment__footer") != null);
+    const menuTrigger = await waitForElement("comment options menu", () =>
+        theComment.querySelector<HTMLElement>('.grading-e-comment__actions-container [title="More options"]'));
+    simulateClick(menuTrigger);
+    const deleteBtn = await waitForElement("comment delete button", () => findFlyoutMenuItem("Delete comment"));
     deleteBtn.click();
 }
 
@@ -240,7 +275,7 @@ registerAddressableKeybind('Enter comment macro mode', 'w', 'cmt-waiting-for-com
     commentData.applyHandler();
 }), () => {
     const el = document.elementFromPoint(getCurrentMouseX(), getCurrentMouseY());
-    return el?.closest('.grading-canvas__image-capture-container') !== null;
+    return el?.closest(ANNOTATION_CAPTURE_SELECTOR) != null;
 }, (searchKey) => {
     if (!searchKey) {
         searchVisualizer!.textContent = "";

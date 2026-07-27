@@ -20,24 +20,38 @@ function fire(type: string, x: number, y: number, target: Element | null = docum
     target.dispatchEvent(event);
 }
 
-export function simulateMouseDragTo(draggableEl: Element, endX: number, endY: number) {
+function fireDrag(type: string, dataTransfer: DataTransfer, x: number, y: number, target: Element) {
+    const event = new DragEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        clientX: x,
+        clientY: y,
+        dataTransfer,
+    });
+    target.dispatchEvent(event);
+}
+
+export function simulateDragAndDrop(draggableEl: Element, endX: number, endY: number) {
+    const dataTransfer = new DataTransfer();
     const startRect = draggableEl.getBoundingClientRect();
     const startX = startRect.left + startRect.width / 2;
     const startY = startRect.top + startRect.height / 2;
 
-    // 1. Mouse down on the draggable element
-    fire('mousedown', startX, startY, draggableEl);
+    fireDrag('dragstart', dataTransfer, startX, startY, draggableEl);
 
-    // 2. Move in small steps toward the target coordinates
-    const steps = 20;
-    for (let i = 1; i <= steps; i++) {
-        const x = startX + (endX - startX) * (i / steps);
-        const y = startY + (endY - startY) * (i / steps);
-        fire('mousemove', x, y);
+    const dropTarget = document.elementFromPoint(endX, endY);
+    if (!dropTarget) {
+        console.warn("can't find an element to drop onto");
+        fireDrag('dragend', dataTransfer, endX, endY, draggableEl);
+        return false;
     }
 
-    // 3. Mouse up at final position
-    fire('mouseup', endX, endY, document.elementFromPoint(endX, endY));
+    fireDrag('dragenter', dataTransfer, endX, endY, dropTarget);
+    fireDrag('dragover', dataTransfer, endX, endY, dropTarget);
+    fireDrag('drop', dataTransfer, endX, endY, dropTarget);
+    fireDrag('dragend', dataTransfer, endX, endY, draggableEl);
+    return true;
 }
 
 export function simulateClick(element: Element) {

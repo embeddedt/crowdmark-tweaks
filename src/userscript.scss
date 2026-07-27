@@ -1,15 +1,25 @@
 /* slightly reduce comment height */
-li.tool__lib-comment, span.lib-comment__text > div.processed-text {
-    --us-height-override: 30px;
-    height: var(--us-height-override) !important;
-    line-height: var(--us-height-override) !important;
-}
+.grading-e-sidebar-comment {
+    --us-height-override: 32px;
+    padding: 2px 8px;
+    gap: 8px;
 
-/* increase default comment library width */
-.grading-toolbar__submenu--library {
-    width: 236px;
-}
+    .grading-e-sidebar-comment__points {
+        height: var(--us-height-override);
+    }
 
+    .grading-e-sidebar-comment__content {
+        min-height: var(--us-height-override);
+        max-height: var(--us-height-override);
+
+        /* Crowdmark clamps comments to three lines, keep them to one */
+        .processed-text {
+            -webkit-line-clamp: 1;
+            line-clamp: 1;
+            overflow: hidden;
+        }
+    }
+}
 
 
 .cmt-waiting-for-digit {
@@ -27,6 +37,8 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
     right: 4px;
     bottom: 50%;
     transform: translateY(50%);
+    /* stay above the hover-activated edit icon in the same corner */
+    z-index: 1;
 }
 
 .cm-tweaks-comment-macro-indicator {
@@ -54,36 +66,24 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
     }
 }
 
-/* Hack to suppress Crowdmark virtualizing the comment list */
-.cmt-comment-virtualization-workaround {
-    resize: both;
-    position: absolute;
-    top: 56px;
-    left: 0;
-    display: flex;
-    flex-direction: column;
-    > .grading-toolbar__submenu--library {
-        resize: none;
-        height: initial !important;
-        position: static;
-        width: 100% !important;
-        flex: 1 0 auto;
-        border-radius: 0;
-    }
-    width: 236px;
-    overflow-y: auto;
-    overflow-x: hidden;
+/*
+ * Wrapper injected around the comment list. Crowdmark no longer virtualizes
+ * that list, so this only anchors the search visualizer and outlines the list
+ * while a comment macro is being typed.
+ */
+.cmt-comment-list-wrapper {
+    position: relative;
     border: 2px transparent solid;
-    border-radius: 4px;
+    border-radius: 8px;
 }
 
 .cmt-waiting-for-comment-idx {
-    .cmt-comment-virtualization-workaround {
+    .cmt-comment-list-wrapper {
         border-color: red;
     }
 }
 
-.cm-tweaks-comment-search li.tool__lib-comment:not(.cm-tweaks-search-matches) {
+.cm-tweaks-comment-search li.grading-e-sidebar-category__list-item:not(.cm-tweaks-search-matches) {
     display: none;
 }
 
@@ -103,11 +103,6 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
     p {
         margin-bottom: 0.5em;
     }
-}
-
-/* raise comments being edited above others */
-.cm-comment.is-editing {
-    z-index: 100;
 }
 
 .cm-tweaks-fast-grading-switch-enabled {
@@ -134,6 +129,10 @@ li.tool__lib-comment, span.lib-comment__text > div.processed-text {
         display: block;
     }
 
+    padding: 0 4px;
+    border-radius: 4px;
+    /* the comment list sits on a white panel, so give the text its own chip */
+    background-color: #2f3239;
     color: white;
     font-weight: bold;
     /* dark mode */
