@@ -15,12 +15,13 @@ function getSecondsPerBooklet() {
     return window.localStorage.getItem("cmtSecondsPerBooklet") ?? 50;
 }
 
+/** The toolbar at the top of the grading sidebar; the timer goes at its end. */
+const SIDEBAR_TOP_SELECTOR = "section.grading-e-sidebar-top";
+
 export function installGradingTimer() {
     if (!isFeatureEnabled("Pacing timer")) {
         return;
     }
-
-    let observer;
 
     /** @type {HTMLDivElement} */
     let currentTimer;
@@ -30,30 +31,35 @@ export function installGradingTimer() {
     let currentPageIsGrading = isOnGradingPage();
 
     function injectIfPresent() {
-        const evalList = document.querySelector(".grading-sidebar__container > .evaluation__list");
-        if (!evalList || evalList.parentElement.querySelector(".cmt-grading-timer")) {
+        const sidebarTop = document.querySelector(SIDEBAR_TOP_SELECTOR);
+        if (!sidebarTop || sidebarTop.querySelector(".cmt-grading-timer")) {
             return;
         }
         const evalTimer = document.createElement("div");
         evalTimer.classList.add("cmt-grading-timer");
-        evalTimer.textContent = "00:00";
-        evalList.parentElement.appendChild(evalTimer);
+        sidebarTop.appendChild(evalTimer);
         currentTimer = evalTimer;
-        if (observer) observer.disconnect();
+        renderCurrentValue();
     }
     injectIfPresent();
 
-    observer = new MutationObserver(() => injectIfPresent());
-    observer.observe(document.body, { childList: true, subtree: true });
+    // Keep watching: switching booklets tears the sidebar down and rebuilds it,
+    // which takes the timer with it and leaves currentTimer detached.
+    new MutationObserver(() => injectIfPresent())
+        .observe(document.body, { childList: true, subtree: true });
 
-    function setCurrentValue(n) {
-        currentSecondsValue = n;
-        currentTimer.textContent = formatTime(n);
-        if (n < getSecondsPerBooklet()) {
+    function renderCurrentValue() {
+        currentTimer.textContent = formatTime(currentSecondsValue);
+        if (currentSecondsValue < getSecondsPerBooklet()) {
             currentTimer.classList.remove("cmt-grading-timer-lagging");
         } else {
             currentTimer.classList.add("cmt-grading-timer-lagging");
         }
+    }
+
+    function setCurrentValue(n) {
+        currentSecondsValue = n;
+        renderCurrentValue();
     }
 
     let highestSeenBooklet = getCurrentBookletNumber() ?? -1;

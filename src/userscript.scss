@@ -57,11 +57,16 @@
     }
 }
 
+/* Sits at the end of the sidebar toolbar, which is a flex row of icon buttons */
 .cmt-grading-timer {
+    flex: none;
     background-color: black;
     font-family: monospace;
     color: green;
-    font-size: 24px;
+    font-size: 20px;
+    line-height: 1.2;
+    padding: 2px 6px;
+    border-radius: 4px;
     text-align: center;
     &.cmt-grading-timer-lagging {
         color: red;

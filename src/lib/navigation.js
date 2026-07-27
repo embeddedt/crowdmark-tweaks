@@ -1,6 +1,6 @@
 
 
-const gradingUrlRegex = /^https:\/\/app\.crowdmark\.com\/exams\/([^/]+)\/grading\/student\/(\d+)\/question\/([^/]+)/;
+const gradingUrlRegex = /^https:\/\/app\.crowdmark\.com\/exams\/([^/]+)\/grading-enhanced\/student\/(\d+)\/question\/([^/]+)/;
 
 export function isOnGradingPage() {
     return window.location.href.match(gradingUrlRegex) != null;
