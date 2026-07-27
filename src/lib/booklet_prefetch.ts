@@ -2,14 +2,28 @@
 import { getOwner } from './ember_access';
 import { isFeatureEnabled } from './feature_flags';
 
-const crowdmarkImageUrl = /^https:\/\/([^\/]+)\/assignments\/(\d+)\/([^\/]+)\/([a-f0-9-]+)\?(.*)$/;
-const crowdmarkExamApiUrl = /^(https:\/\/app\.crowdmark\.com)?\/api\/v2\/exams\?/;
+const ORIGIN = "https://app.crowdmark.com";
+
+const crowdmarkImageUrl = /^https:\/\/([^\/]+)\/exam_pages\/([a-f0-9-]+)\?/;
+/**
+ * The two API requests worth prefetching: the booklet lookup the app makes on
+ * every navigation, and the page list it follows up with. The rest of what it
+ * fetches (evaluations, annotations, taggings) is small and left alone.
+ */
+const prefetchableApiUrl = /^(https:\/\/app\.crowdmark\.com)?\/api\/v2\/exams(\?filter|\/\d+\/exam-pages)/;
+
+function toAbsoluteUrl(url: string) {
+    return url.startsWith("/") ? ORIGIN + url : url;
+}
 
 function parseCrowdmarkImageUrl(url: string): { url: string; cacheKey: string } | null {
     const match = url.match(crowdmarkImageUrl);
     if (!match) return null;
-    const [, hostname, assignmentId, type, uuid] = match;
-    return { url, cacheKey: `https://${hostname}/assignments/${assignmentId}/${type}/${uuid}` };
+    const [, hostname, uuid] = match;
+    // The Expires/Signature query is regenerated every session, so a booklet
+    // prefetched now is requested under a different URL later — key on the
+    // unsigned form
+    return { url, cacheKey: `https://${hostname}/exam_pages/${uuid}` };
 }
 
 const cachePromise = caches.open("cmtBookletPrefetchCache");
@@ -19,7 +33,7 @@ cachePromise.then(async(cache) => {
     // Clear any exam API entries left over from a previous session that didn't clean up
     const keys = await cache.keys();
     return Promise.all(keys.map(req => {
-        if (crowdmarkExamApiUrl.test(req.url)) {
+        if (prefetchableApiUrl.test(req.url)) {
             return cache.delete(req);
         } else {
             return null;
@@ -29,8 +43,8 @@ cachePromise.then(async(cache) => {
     const origFetch = unsafeWindow.fetch.bind(unsafeWindow);
 
     (unsafeWindow as any).fetch = async function(input: RequestInfo | URL, init?: RequestInit) {
-        if (isFeatureEnabled("Booklet prefetch") && typeof input === "string" && crowdmarkExamApiUrl.test(input)) {
-            const absoluteUrl = input.startsWith("/") ? "https://app.crowdmark.com" + input : input;
+        if (isFeatureEnabled("Booklet prefetch") && typeof input === "string" && prefetchableApiUrl.test(input)) {
+            const absoluteUrl = toAbsoluteUrl(input);
             const cached = await cache.match(absoluteUrl);
             if (cached) {
                 cache.delete(absoluteUrl);
@@ -52,7 +66,7 @@ cachePromise.then(async(cache) => {
             const { cacheKey } = parsed;
             cache.match(cacheKey).then(existing => {
                 if (!existing) {
-                    fetch(url).then(response => {
+                    origFetch(url).then(response => {
                         if (!response.ok) {
                             return;
                         }
@@ -63,66 +77,86 @@ cachePromise.then(async(cache) => {
         }
     }
 
+    async function fetchJson(url: string, init?: RequestInit): Promise<any | null> {
+        const res = await origFetch(url, init);
+        if (!res.ok) {
+            console.warn(`prefetch request failed (${res.status}): ${url}`);
+            return null;
+        }
+        return res.json();
+    }
+
+    /**
+     * Store a request in the cache under the exact URL the app will ask for,
+     * and hand back its body so the prefetch can walk to the next request.
+     */
+    async function fetchAndCache(url: string): Promise<any | null> {
+        const cached = await cache.match(url);
+        if (cached) {
+            return cached.clone().json();
+        }
+        const res = await origFetch(url);
+        if (!res.ok) {
+            console.warn(`prefetch failed (${res.status}): ${url}`);
+            return null;
+        }
+        await cache.put(url, res.clone());
+        return res.json();
+    }
+
     async function prefetchNextBooklet() {
         if (!isFeatureEnabled("Booklet prefetch")) return;
-        const gradingService = getOwner()?.lookup('service:grading');
+        const gradingService = getOwner()?.lookup('service:grading-enhanced');
         if (gradingService == null) {
-            console.warn("could not get grading service");
+            console.warn("could not get grading-enhanced service");
             return;
         }
-        const examQuestion = gradingService.examQuestion;
-        if (examQuestion == null) {
-            console.warn("grading service has no active examQuestion");
-            return;
-        }
-        const examMasterQuestionId: number = examQuestion.belongsTo('examMasterQuestion').id();
-        const examQuestionId: number = examQuestion.id;
-
-        const res = await fetch(`https://app.crowdmark.com/api/v2/exam-master-questions/${examMasterQuestionId}/exam-questions/next?include=exam.exam-pages`, {
-            method: 'PUT',
-            body: new URLSearchParams({
-                "exam_question_id": examQuestionId.toString()
-            })
-        });
-        const nextBookletPayload = await res.json();
-        prefetchImages(nextBookletPayload.included.filter((o: any) => o.type === "exam-pages").map((o: any) => o.attributes.url));
-
-        // prefetch exams payload as well
-
-        const examObj = nextBookletPayload.included.find((o: any) => o.type === "exams" || o.type === "exam");
-        if (!examObj) {
-            console.warn("could not find exam object in next booklet payload");
+        // service:grading still exists but is inert on this UI; the active
+        // booklet lives on service:grading-enhanced
+        const slug = gradingService.examMaster?.id;
+        const examMasterQuestionId = gradingService.activeExamMasterQuestion?.id;
+        const examQuestionId = gradingService.activeQuestion?.id;
+        if (slug == null || examMasterQuestionId == null || examQuestionId == null) {
             return;
         }
 
-        const slug = examObj.relationships?.["exam-master"]?.data?.id;
-        const sequence = examObj.attributes.sequence;
-        if (!slug || sequence == null) {
-            console.warn("could not extract slug/sequence from exam object");
+        // Ask the server where "next" points, the same way the app does. Once an
+        // assessment is partly graded this is rarely the adjacent booklet, so
+        // exam.nextSequence — which drives the ← → arrows — would warm the wrong
+        // one for anyone navigating by next-ungraded.
+        const nextPayload = await fetchJson(
+            `${ORIGIN}/api/v2/exam-master-questions/${examMasterQuestionId}/exam-questions/next`,
+            { method: 'PUT', body: new URLSearchParams({ exam_question_id: String(examQuestionId) }) });
+        const examRelationship = nextPayload?.data?.relationships?.exam;
+        const nextExamId = examRelationship?.data?.id;
+        if (nextExamId == null) {
+            // Nothing ungraded left to move on to
             return;
         }
 
-        const examApiUrl = "https://app.crowdmark.com/api/v2/exams?" + new URLSearchParams([
+        // That payload carries the *question's* sequence, not the booklet's, and
+        // the app looks a booklet up by (exam-master, sequence)
+        const examRecord = await fetchJson(examRelationship.links?.related ?? `${ORIGIN}/api/v2/exams/${nextExamId}`);
+        const sequence = examRecord?.data?.attributes?.sequence;
+        if (sequence == null) {
+            console.warn("could not resolve the sequence of exam " + nextExamId);
+            return;
+        }
+
+        // Byte-identical to what the app requests on navigation, since the
+        // cache matches on the whole URL
+        await fetchAndCache(`${ORIGIN}/api/v2/exams?` + new URLSearchParams([
             ["filter[exam-master]", slug],
             ["filter[sequence]", String(sequence)],
-            ["include[]", "exam-pages"],
-            ["include[]", "exam-pages.exam-master-page"],
-            ["include[]", "exam-questions"],
-            ["include[]", "exam-questions.anchored-to-exam-page"],
-            ["include[]", "evaluations"],
-            ["include[]", "evaluations.marker"],
-            ["include[]", "annotations"],
-            ["include[]", "exam-questions.taggings"],
-        ]);
+        ]));
 
-        cache.match(examApiUrl).then(existing => {
-            if (!existing) {
-                origFetch(examApiUrl).then(r => {
-                    if (!r.ok) return;
-                    cache.put(examApiUrl, r);
-                });
-            }
-        });
+        // The page images are no longer sideloaded into the booklet payload
+        const pagesPayload = await fetchAndCache(`${ORIGIN}/api/v2/exams/${nextExamId}/exam-pages`);
+        if (pagesPayload == null) return;
+
+        prefetchImages((pagesPayload.data ?? [])
+            .map((o: any) => o.attributes?.url)
+            .filter(Boolean));
     }
 
     async function swapImageFromCache(img: HTMLImageElement) {
@@ -157,17 +191,16 @@ cachePromise.then(async(cache) => {
 
     observer.observe(document.body, { childList: true, subtree: true });
 
-    function setupGradingObserver() {
-        const gradingService = getOwner()?.lookup('service:grading');
-        if (gradingService == null) {
-            setTimeout(setupGradingObserver, 100);
-            return;
-        }
-        const { addObserver } = (unsafeWindow as any).requireModule('@ember/object/observers');
-        addObserver(gradingService, 'examQuestion', prefetchNextBooklet);
-        prefetchNextBooklet();
+    // `activeQuestion` and `exam` are getters rather than tracked fields, so
+    // there is nothing dependable to observe — navigation is the signal. The
+    // delay lets the service catch up with the new URL before it is read.
+    let prefetchTimeout: number | undefined;
+    function schedulePrefetch() {
+        clearTimeout(prefetchTimeout);
+        prefetchTimeout = setTimeout(prefetchNextBooklet, 750) as unknown as number;
     }
 
-    setupGradingObserver();
+    window.addEventListener("urlchange", schedulePrefetch);
+    schedulePrefetch();
 });
 

@@ -21,11 +21,18 @@ export function getOwner(): any {
     if (ownerInstance != null) return ownerInstance;
     const ember = getEmber();
     if (ember == null) return null;
-    const el = document.querySelector('[id^="ember"]');
-    if (el == null) return null;
-    const view = ember.ViewUtils.getElementView(el);
-    if (view == null) return null;
     const { getOwner } = (unsafeWindow as any).requireModule('@ember/owner');
-    ownerInstance = getOwner(view);
-    return ownerInstance;
+    // Not everything carrying an ember id is a view — the basic-dropdown
+    // placeholders have one and resolve to null — so try each rendered view
+    // rather than betting on the first element in the document
+    for (const el of Array.from(document.querySelectorAll('.ember-view'))) {
+        const view = ember.ViewUtils.getElementView(el);
+        if (view == null) continue;
+        const owner = getOwner(view);
+        if (owner != null) {
+            ownerInstance = owner;
+            return ownerInstance;
+        }
+    }
+    return null;
 }
