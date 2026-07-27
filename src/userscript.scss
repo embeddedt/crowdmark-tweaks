@@ -148,6 +148,12 @@
     }
 }
 
+/* Crowdmark sizes .modal__close for a 24px icon; ours is a text glyph */
+.cmt-modal-close {
+    font-size: 28px;
+    line-height: 1;
+}
+
 .cmt-settings-dialog-split-pane {
     display: flex;
     .cmt-settings-dialog-tabs {

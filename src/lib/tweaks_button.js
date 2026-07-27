@@ -4,9 +4,8 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { getCharForKeybind, getRegisteredKeybindIds, setCharForKeybind, isValidKeybindKey } from "./keybinds";
 import { isFeatureEnabled, featureFlags, setFeatureEnabled } from "./feature_flags";
 import { Slider } from "../ui/components/Slider";
-import { replaceFeatherIcons } from "./feather";
-
-const topbarLinkContainers = document.getElementsByClassName("grading-topbar__links");
+/** The icon button list at the right of the grading topbar. */
+const TOPBAR_BUTTONS_SELECTOR = "ul.grading-e-topbar__buttons-nav";
 
 function Keybind({ name, onClick, isRemapping }) {
     return <li>
@@ -95,33 +94,27 @@ function openTweaksDialog() {
 }
 
 function updateTopbars() {
-    for(const topbar of topbarLinkContainers) {
-        if (topbar.querySelector(".cmt-tweaks-settings-button") == null) {
-            const btn = document.createElement("button");
-            btn.classList.add("grading-topbar__filter-link", "link--button", "feather-icon", "cmt-tweaks-settings-button");
-            btn.textContent = "Tweaks";
-            const icon = document.createElement("i");
-            icon.setAttribute("data-feather", "settings");
-            btn.insertBefore(icon, btn.firstChild);
-            btn.addEventListener("click", openTweaksDialog);
-            topbar.insertBefore(btn, topbar.firstChild);
-            replaceFeatherIcons();
+    for (const buttonsNav of document.querySelectorAll(TOPBAR_BUTTONS_SELECTOR)) {
+        if (buttonsNav.querySelector(".cmt-tweaks-settings-button") != null) {
+            continue;
         }
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.classList.add("grading-e-topbar__button", "cmt-tweaks-settings-button");
+        // Crowdmark's own topbar buttons are icon-only with an Ember tooltip;
+        // a plain text label reads better and needs no tooltip of its own
+        btn.textContent = "Tweaks";
+        btn.addEventListener("click", openTweaksDialog);
+
+        const item = document.createElement("li");
+        item.appendChild(btn);
+        buttonsNav.appendChild(item);
     }
 }
 
-function addTweaksButton() {
-    if (topbarLinkContainers.length > 0) {
-        updateTopbars();
-        return;
-    }
-    new MutationObserver(function(mutations, observer) {
-        if (topbarLinkContainers.length > 0) {
-            updateTopbars();
-            observer.disconnect();
-        }
-    }).observe(document.body, {childList: true, subtree: true});
-}
+updateTopbars();
 
-addTweaksButton();
-window.addEventListener("urlchange", addTweaksButton);
+// The topbar is rebuilt on navigation, so keep watching rather than
+// disconnecting after the first injection
+new MutationObserver(() => updateTopbars())
+    .observe(document.body, { childList: true, subtree: true });
