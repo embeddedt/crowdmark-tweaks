@@ -5,7 +5,7 @@ document.addEventListener('mousemove', e => {
     mouseY = e.clientY;
 });
 
-function fire(type, x, y, target = document.elementFromPoint(x, y)) {
+function fire(type: string, x: number, y: number, target: Element | null = document.elementFromPoint(x, y)) {
     if (!target) {
         console.warn("can't find target to fire " + type + " event to");
         return;
@@ -20,7 +20,7 @@ function fire(type, x, y, target = document.elementFromPoint(x, y)) {
     target.dispatchEvent(event);
 }
 
-export function simulateMouseDragTo(draggableEl, endX, endY) {
+export function simulateMouseDragTo(draggableEl: Element, endX: number, endY: number) {
     const startRect = draggableEl.getBoundingClientRect();
     const startX = startRect.left + startRect.width / 2;
     const startY = startRect.top + startRect.height / 2;
@@ -40,10 +40,7 @@ export function simulateMouseDragTo(draggableEl, endX, endY) {
     fire('mouseup', endX, endY, document.elementFromPoint(endX, endY));
 }
 
-/**
- * @param {HTMLElement} element
- */
-export function simulateClick(element) {
+export function simulateClick(element: Element) {
     const rect = element.getBoundingClientRect();
     const x = rect.x + rect.width / 2;
     const y = rect.y + rect.height / 2;
@@ -60,14 +57,7 @@ export function getCurrentMouseY() {
     return mouseY;
 }
 
-/**
- *
- * @param {(el: HTMLElement) => boolean} elementPredicate
- * @param {number} curX
- * @param {number} curY
- * @returns
- */
-export async function waitForElementUnderMouse(elementPredicate, curX = getCurrentMouseX(), curY = getCurrentMouseY()) {
+export async function waitForElementUnderMouse(elementPredicate: (el: Element) => boolean, curX = getCurrentMouseX(), curY = getCurrentMouseY()) {
     let tries = 0;
     while (true) {
         const el = document.elementsFromPoint(curX, curY).find(elementPredicate);

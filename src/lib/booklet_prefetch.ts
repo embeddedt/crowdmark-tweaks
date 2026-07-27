@@ -85,11 +85,11 @@ cachePromise.then(async(cache) => {
             })
         });
         const nextBookletPayload = await res.json();
-        prefetchImages(nextBookletPayload.included.filter(o => o.type === "exam-pages").map(o => o.attributes.url));
+        prefetchImages(nextBookletPayload.included.filter((o: any) => o.type === "exam-pages").map((o: any) => o.attributes.url));
 
         // prefetch exams payload as well
 
-        const examObj = nextBookletPayload.included.find(o => o.type === "exams" || o.type === "exam");
+        const examObj = nextBookletPayload.included.find((o: any) => o.type === "exams" || o.type === "exam");
         if (!examObj) {
             console.warn("could not find exam object in next booklet payload");
             return;

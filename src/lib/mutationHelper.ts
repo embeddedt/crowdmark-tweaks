@@ -1,10 +1,5 @@
 
-/**
- * @param {HTMLElement} rootElement
- * @param {(element: HTMLElement) => boolean} nodePredicate
- * @returns {Promise<HTMLElement>}
- */
-export async function waitForElementToExist(rootElement, nodePredicate) {
+export async function waitForElementToExist(rootElement: Node, nodePredicate: (element: HTMLElement) => boolean): Promise<HTMLElement> {
     return new Promise(resolve => {
         const observer = new MutationObserver(mutations => {
             for (const mutation of mutations) {

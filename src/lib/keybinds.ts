@@ -1,9 +1,8 @@
 
-/** @type {Set<string>} */
-let activeAddressableKeybinds = new Set();
+let activeAddressableKeybinds: Set<string | null> = new Set();
 
 
-function areOtherKeybindsActive(selfChar) {
+function areOtherKeybindsActive(selfChar: string | null) {
     let sz = activeAddressableKeybinds.size;
     if (activeAddressableKeybinds.has(selfChar)) {
         sz--;
@@ -11,12 +10,8 @@ function areOtherKeybindsActive(selfChar) {
     return sz > 0;
 }
 
-/**
- *
- * @param {KeyboardEvent} e
- */
-function isRelevantKeydownEvent(e) {
-    const target = e.target;
+function isRelevantKeydownEvent(e: KeyboardEvent) {
+    const target = e.target as HTMLElement;
     if (
         target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
@@ -28,17 +23,17 @@ function isRelevantKeydownEvent(e) {
     return true;
 }
 
-export function isValidKeybindKey(key) {
+export function isValidKeybindKey(key: string) {
     key = key.toLowerCase();
     return key.length === 1 || key === "tab";
 }
 
-const keybindDefaultCharsMap = new Map();
+const keybindDefaultCharsMap = new Map<string, string>();
 
-export function getCharForKeybind(name) {
+export function getCharForKeybind(name: string): string | null {
     let char = window.localStorage.getItem("CMT-KEYBIND:" + name);
     if (char == null) {
-        char = keybindDefaultCharsMap.get(name);
+        char = keybindDefaultCharsMap.get(name) ?? null;
     }
     if (char == "null") {
         char = null;
@@ -46,7 +41,7 @@ export function getCharForKeybind(name) {
     return char;
 }
 
-export function setCharForKeybind(name, char) {
+export function setCharForKeybind(name: string, char: string) {
     window.localStorage.setItem("CMT-KEYBIND:" + name, char);
 }
 
@@ -55,13 +50,9 @@ export function getRegisteredKeybindIds() {
 }
 
 /**
- *
- * @param {string} name
- * @param {string} char default character
- * @param {() => void} pressCallback
- * @param {() => boolean} enabledPredicate
+ * @param char default character
  */
-export function registerGlobalKeybind(name, defaultChar, pressCallback, enabledPredicate = () => true) {
+export function registerGlobalKeybind(name: string, defaultChar: string, pressCallback: () => void, enabledPredicate: () => boolean = () => true) {
     keybindDefaultCharsMap.set(name, defaultChar);
     document.addEventListener('keydown', (e) => {
         const char = getCharForKeybind(name);
@@ -77,13 +68,8 @@ export function registerGlobalKeybind(name, defaultChar, pressCallback, enabledP
     });
 }
 
-/**
- * @param {Map<string, T>} map
- * @param {string} prefix
- * @template T
- */
-function getUniqueByPrefix(map, prefix) {
-  let result = null;
+function getUniqueByPrefix<T>(map: Map<string, T>, prefix: string): { status: 'conflict' } | { status: 'unique', value: T } | { status: 'none' } {
+  let result: T | null = null;
   let count = 0;
 
   for (const [key, element] of map) {
@@ -101,13 +87,10 @@ function getUniqueByPrefix(map, prefix) {
 }
 
 /**
- * @param {() => Map<string, T>} mapGetter returns the map of possible values
- * @param {(v: T) => void} finalCallback the callback to invoke once a value
- * is discovered
- * @return {(v: string) => boolean}
- * @template T
+ * @param mapGetter returns the map of possible values
+ * @param finalCallback the callback to invoke once a value is discovered
  */
-export function extendedAddressValueCallback(mapGetter, finalCallback) {
+export function extendedAddressValueCallback<T>(mapGetter: () => Map<string, T>, finalCallback: (v: T) => void): (v: string) => boolean {
     return (val) => {
         const searchResult = getUniqueByPrefix(mapGetter(), val);
 
@@ -125,18 +108,20 @@ export function extendedAddressValueCallback(mapGetter, finalCallback) {
 }
 
 /**
- * @param {string} name
- * @param {string} char default character
- * @param {(n: string) => boolean} callback invoked when a new character is
- * appended to the addressed value. If true is returned will continue appending
- * more characters.
- * @param {undefined|() => boolean} enabledPredicate
- * @param {undefined|(key: string) => void} searchProgressCallback
+ * @param char default character
+ * @param valueCallback invoked when a new character is appended to the
+ * addressed value. If true is returned will continue appending more
+ * characters.
  */
-export function registerAddressableKeybind(name, defaultChar, stateClass, valueCallback, enabledPredicate, searchProgressCallback) {
-    if (!searchProgressCallback) {
-        searchProgressCallback = () => {};
-    }
+export function registerAddressableKeybind(
+    name: string,
+    defaultChar: string,
+    stateClass: string,
+    valueCallback: (n: string) => boolean,
+    enabledPredicate?: () => boolean,
+    searchProgressCallback?: (key: string | null) => void
+) {
+    const onSearchProgress = searchProgressCallback ?? (() => {});
 
     keybindDefaultCharsMap.set(name, defaultChar);
 
@@ -148,7 +133,7 @@ export function registerAddressableKeybind(name, defaultChar, stateClass, valueC
         rootEl.classList.remove(stateClass);
         activeAddressableKeybinds.delete(getCharForKeybind(name));
         valueBuffer = "";
-        searchProgressCallback(null);
+        onSearchProgress(null);
     }
 
     document.addEventListener('keydown', (e) => {
@@ -164,7 +149,7 @@ export function registerAddressableKeybind(name, defaultChar, stateClass, valueC
             if (key === char) {
                 rootEl.classList.add(stateClass);
                 activeAddressableKeybinds.add(char);
-                searchProgressCallback("");
+                onSearchProgress("");
             }
         } else {
             if (
@@ -183,7 +168,7 @@ export function registerAddressableKeybind(name, defaultChar, stateClass, valueC
                 if (!result) {
                     stopWaiting();
                 } else {
-                    searchProgressCallback(valueBuffer);
+                    onSearchProgress(valueBuffer);
                 }
             } else if (key === "escape") {
                 stopWaiting();

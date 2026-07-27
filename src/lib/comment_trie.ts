@@ -2,7 +2,7 @@
 export class CommentTrie<V> {
     element?: V;
     children?: Map<string, CommentTrie<V>>;
-    usages: number;
+    usages = 0;
 
     constructor() {
         this.clear();
@@ -34,7 +34,7 @@ export class CommentTrie<V> {
         const nextChar = prefix.charAt(charIdx);
         let nestedTrie: CommentTrie<V>;
         if (this.children.has(nextChar)) {
-            nestedTrie = this.children.get(nextChar);
+            nestedTrie = this.children.get(nextChar)!;
         } else {
             nestedTrie = new CommentTrie();
             this.children.set(nextChar, nestedTrie);
@@ -64,11 +64,11 @@ export class CommentTrie<V> {
         }
     }
 
-    getNestedTrieForPrefix(prefix: string): CommentTrie<V> {
+    getNestedTrieForPrefix(prefix: string): CommentTrie<V> | undefined {
         return this._getNestedTrieForChar(prefix, 0)
     }
 
-    _getNestedTrieForChar(prefix: string, charIdx: number): CommentTrie<V> {
+    _getNestedTrieForChar(prefix: string, charIdx: number): CommentTrie<V> | undefined {
         if (charIdx == prefix.length) {
             return this
         }
@@ -81,21 +81,21 @@ export class CommentTrie<V> {
             }
         }
 
-        return null
+        return undefined
     }
 
-    get(key: string): V {
+    get(key: string): V | undefined {
         const trie = this.getNestedTrieForPrefix(key);
-        return trie?.element ?? null
+        return trie?.element
     }
 
     clear() {
         this.usages = 0;
-        this.element = null;
-        this.children = null;
+        this.element = undefined;
+        this.children = undefined;
     }
 
-    private _getUniqueContainedElement() {
+    private _getUniqueContainedElement(): V {
         if (this.element != null) {
             return this.element
         }
@@ -128,7 +128,7 @@ export class CommentTrie<V> {
     }
 
     toString(): string {
-        const elements = [];
+        const elements: string[] = [];
         this.visit((prefix, e) => {
             elements.push(prefix + " -> " + e);
         });

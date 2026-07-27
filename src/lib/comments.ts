@@ -3,8 +3,8 @@ import { registerAddressableKeybind, registerGlobalKeybind } from './keybinds';
 import { waitForElementToExist } from "./mutationHelper";
 import { CommentTrie } from './comment_trie';
 
-let commentListWrapper: HTMLDivElement = null;
-let searchVisualizer: HTMLSpanElement = null;
+let commentListWrapper: HTMLDivElement | null = null;
+let searchVisualizer: HTMLSpanElement | null = null;
 
 // Wrap the comment library in a div and make the <ul> full height. This
 // effectively disables the list virtualization and forces every comment element
@@ -14,7 +14,7 @@ let searchVisualizer: HTMLSpanElement = null;
     const SELECTOR = 'ul.grading-toolbar__submenu.grading-toolbar__submenu--library';
     const WRAPPER_CLASS = 'cmt-comment-virtualization-workaround';
 
-    function wrapTarget(ul) {
+    function wrapTarget(ul: Element | null) {
       if (!ul || ul.parentElement?.classList.contains(WRAPPER_CLASS)) return;
       const wrapper = document.createElement('div');
       wrapper.className = WRAPPER_CLASS;
@@ -26,7 +26,7 @@ let searchVisualizer: HTMLSpanElement = null;
       wrapper.appendChild(searchVisualizer);
 
       commentListWrapper = wrapper;
-      applyCommentElementObserver(ul);
+      applyCommentElementObserver(ul as HTMLUListElement);
     }
 
     const existing = document.querySelector(SELECTOR);
@@ -61,7 +61,7 @@ const commentTrie: CommentTrie<{
     applyHandler: () => void
 }> = new CommentTrie();
 
-async function applyComment(commentElement, mouseX = getCurrentMouseX(), mouseY = getCurrentMouseY()) {
+async function applyComment(commentElement: Element, mouseX = getCurrentMouseX(), mouseY = getCurrentMouseY()) {
     console.log("Auto-apply comment", commentElement);
     simulateMouseDragTo(commentElement, mouseX, mouseY);
     const undoList = commentKeybindUndoStack[commentKeybindUndoStack.length - 1];
@@ -72,7 +72,7 @@ async function applyComment(commentElement, mouseX = getCurrentMouseX(), mouseY 
     return element;
 }
 
-async function applyCommentGroup(groupList) {
+async function applyCommentGroup(groupList: string[]) {
     console.log("Apply group ", groupList);
     let currentX = getCurrentMouseX(), currentY = getCurrentMouseY();
     for (const key of groupList) {
@@ -143,7 +143,7 @@ function applyCommentElementObserver(ul: HTMLUListElement) {
 
     function rebuildMacroList() {
         for (const el of Array.from(ul.querySelectorAll(".cm-tweaks-comment-macro-indicator"))) {
-            el.parentNode.removeChild(el);
+            el.parentNode?.removeChild(el);
         }
         commentTrie.clear();
         for (const el of ul.querySelectorAll("li.tool__lib-comment:not(.lib-comment--loading)")) {
@@ -154,7 +154,7 @@ function applyCommentElementObserver(ul: HTMLUListElement) {
         const config = getConfigurationCommentBlob();
 
         if (typeof config.groups !== 'undefined') {
-            for (let [groupKey, groupList] of Object.entries(config.groups)) {
+            for (let [groupKey, groupList] of Object.entries<string[]>(config.groups)) {
                 commentTrie.insertChild(groupKey, {
                     applyHandler: () => applyCommentGroup(groupList)
                 });
@@ -183,8 +183,7 @@ function applyCommentElementObserver(ul: HTMLUListElement) {
     observer.observe(ul, { childList: true });
 }
 
-/** @type {HTMLElement[][]} */
-let commentKeybindUndoStack = [];
+let commentKeybindUndoStack: Element[][] = [];
 
 window.addEventListener('urlchange', () => {
     commentKeybindUndoStack = [];
@@ -229,9 +228,9 @@ function getHoveredCommentElement() {
     return null;
 }
 
-async function deleteComment(theComment) {
+async function deleteComment(theComment: Element) {
     simulateClick(theComment);
-    const deleteBtn = await waitForElementToExist(theComment.parentElement, e => e.tagName == 'BUTTON' && e.textContent.trim() == 'Delete' && e.closest(".comment__footer") != null);
+    const deleteBtn = await waitForElementToExist(theComment.parentElement!, e => e.tagName == 'BUTTON' && e.textContent.trim() == 'Delete' && e.closest(".comment__footer") != null);
     deleteBtn.click();
 }
 
@@ -244,15 +243,15 @@ registerAddressableKeybind('Enter comment macro mode', 'w', 'cmt-waiting-for-com
     return el?.closest('.grading-canvas__image-capture-container') !== null;
 }, (searchKey) => {
     if (!searchKey) {
-        searchVisualizer.textContent = "";
+        searchVisualizer!.textContent = "";
         document.documentElement.classList.remove("cm-tweaks-comment-search");
     } else {
-        if (searchVisualizer.textContent.trim() == "") {
+        if (searchVisualizer!.textContent!.trim() == "") {
             for (const el of Array.from(document.querySelectorAll(".cm-tweaks-search-matches"))) {
                 el.classList.remove("cm-tweaks-search-matches");
             }
         }
-        searchVisualizer.textContent = searchKey;
+        searchVisualizer!.textContent = searchKey;
         document.documentElement.classList.add("cm-tweaks-comment-search");
         commentTrie.visit((prefix, data) => {
             const el = data.rawElement;
@@ -275,7 +274,7 @@ registerGlobalKeybind('Delete comment under cursor', 'x', () => {
 }, () => getHoveredCommentElement() != null);
 
 registerGlobalKeybind('Undo last comment placement', 'u', async() => {
-    const undoList = commentKeybindUndoStack.pop();
+    const undoList = commentKeybindUndoStack.pop() ?? [];
     for (const comment of undoList) {
         await deleteComment(comment);
     }
