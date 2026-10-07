@@ -5,7 +5,7 @@ import { getCharForKeybind, getRegisteredKeybindIds, setCharForKeybind, isValidK
 import { isFeatureEnabled, featureFlags, setFeatureEnabled } from "./feature_flags";
 import { Slider } from "../ui/components/Slider";
 /** The icon button list at the right of the grading topbar. */
-const TOPBAR_BUTTONS_SELECTOR = "ul.grading-e-topbar__buttons-nav";
+const TOPBAR_BUTTONS_SELECTOR = "ul.grading-e-topbar__drawer-buttons";
 
 function Keybind({ name, onClick, isRemapping }) {
     return <li>
@@ -100,7 +100,7 @@ function updateTopbars() {
         }
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.classList.add("grading-e-topbar__button", "cmt-tweaks-settings-button");
+        btn.classList.add("grading-e-topbar-icon-button", "cmt-tweaks-settings-button");
         // Crowdmark's own topbar buttons are icon-only with an Ember tooltip;
         // a plain text label reads better and needs no tooltip of its own
         btn.textContent = "Tweaks";

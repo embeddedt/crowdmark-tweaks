@@ -28,7 +28,7 @@ export function isValidKeybindKey(key: string) {
     return key.length === 1 || key === "tab" || key === "enter";
 }
 
-const keybindDefaultCharsMap = new Map<string, string>();
+const keybindDefaultCharsMap = new Map<string, string | null>();
 
 export function getCharForKeybind(name: string): string | null {
     let char = window.localStorage.getItem("CMT-KEYBIND:" + name);
@@ -50,9 +50,9 @@ export function getRegisteredKeybindIds() {
 }
 
 /**
- * @param char default character
+ * @param char default character, or null to leave unbound until the user sets one
  */
-export function registerGlobalKeybind(name: string, defaultChar: string, pressCallback: () => void, enabledPredicate: () => boolean = () => true) {
+export function registerGlobalKeybind(name: string, defaultChar: string | null,pressCallback: () => void, enabledPredicate: () => boolean = () => true) {
     keybindDefaultCharsMap.set(name, defaultChar);
     document.addEventListener('keydown', (e) => {
         const char = getCharForKeybind(name);
@@ -60,8 +60,8 @@ export function registerGlobalKeybind(name: string, defaultChar: string, pressCa
             return;
         }
 
-        // Crowdmark binds modified variants of keys we use — shift+Enter is its
-        // own "next ungraded" — so an unmodified press is the only match
+        // Crowdmark binds modified variants of keys we use, so an unmodified
+        // press is the only match
         if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) {
             return;
         }
